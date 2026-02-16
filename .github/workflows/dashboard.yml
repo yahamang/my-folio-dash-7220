@@ -1,0 +1,43 @@
+name: Update Dashboard
+
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 매일 오전 9시 KST (= 00:00 UTC)
+  workflow_dispatch:        # GitHub에서 수동 실행 버튼
+
+permissions:
+  contents: write           # gh-pages 브랜치에 push 허용
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install yfinance
+
+      - name: Create integrations/.env from secrets
+        run: |
+          mkdir -p integrations
+          echo "BINANCE_API_KEY=${{ secrets.BINANCE_API_KEY }}" > integrations/.env
+          echo "BINANCE_SECRET_KEY=${{ secrets.BINANCE_SECRET_KEY }}" >> integrations/.env
+
+      - name: Generate dashboard
+        run: python3 dashboard.py --no-save
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .
+          publish_branch: gh-pages
+          include_files: dashboard.html
+          commit_message: "dashboard: ${{ github.event.head_commit.message || 'scheduled update' }}"
