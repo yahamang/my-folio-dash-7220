@@ -21,7 +21,7 @@ except ImportError:
     HAS_YFINANCE = False
     print("경고: yfinance 미설치. pip3 install yfinance 실행 후 재시도")
 
-BASE_DIR        = Path.home() / "investment"
+BASE_DIR        = Path(__file__).parent
 CONFIG_PATH     = BASE_DIR / "config.json"
 DATA_DIR        = BASE_DIR / "data"
 OUTPUT_PATH     = BASE_DIR / "dashboard.html"
