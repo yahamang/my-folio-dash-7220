@@ -33,11 +33,15 @@ jobs:
       - name: Generate dashboard
         run: python3 dashboard.py --no-save
 
+      - name: Prepare deploy directory
+        run: |
+          mkdir -p _deploy
+          cp dashboard.html _deploy/index.html
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .
+          publish_dir: _deploy
           publish_branch: gh-pages
-          include_files: dashboard.html
           commit_message: "dashboard: ${{ github.event.head_commit.message || 'scheduled update' }}"
