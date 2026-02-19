@@ -22,7 +22,11 @@
         "holdings": [
           { "ticker": "069500.KS", "name": "KODEX 200",               "shares": 23,  "asset_class": "korea_index",     "avg_price": 56730,  "avg_cost_krw": 1304790, "dividend_yield": 1.5 },
           { "ticker": "133690.KS", "name": "TIGER 나스닥100",          "shares": 12,  "asset_class": "global_growth",   "avg_price": 127219, "avg_cost_krw": 1526623, "dividend_yield": 0.5 },
-          { "ticker": "458730.KS", "name": "TIGER 미국배당다우존스",   "shares": 150, "asset_class": "global_dividend", "avg_price": 11883,  "avg_cost_krw": 1782465, "dividend_yield": 3.0 }
+          { "ticker": "458730.KS", "name": "TIGER 미국배당다우존스",   "shares": 150, "asset_class": "global_dividend", "avg_price": 11883,  "avg_cost_krw": 1782465, "dividend_yield": 3.0 },
+          { "ticker": "055550.KS", "name": "신한지주",                "shares": 15,  "asset_class": "korea_low_pbr",   "avg_price": 100700, "avg_cost_krw": 1510500, "dividend_yield": 4.8 },
+          { "ticker": "267260.KS", "name": "HD현대일렉트릭",           "shares": 1,   "asset_class": "korea_electric",  "avg_price": 967000, "avg_cost_krw": 967000,  "dividend_yield": 1.5 },
+          { "ticker": "079550.KS", "name": "LIG넥스원",                "shares": 2,   "asset_class": "korea_defense",   "avg_price": 461500, "avg_cost_krw": 923000,  "dividend_yield": 1.0 },
+          { "ticker": "132030.KS", "name": "KODEX 골드선물",           "shares": 26,  "asset_class": "commodities",     "avg_price": 28570,  "avg_cost_krw": 742820,  "dividend_yield": 0 }
         ]
       },
       "overseas": {
@@ -36,18 +40,16 @@
     },
 
     "cash": {
-      "securities_usd": 20,
-      "deposit_krw": 5000000,
+      "securities_usd": 0,
+      "deposit_krw": 7211171,
       "deposit_maturity": "2026-03-20",
-      "note": "CMA 1,354,491원은 비상금으로 제외"
+      "note": "Phase 1 매수 완료 (신한지주 15주, 골드 26주, LIG넥스원 2주, HD현대일렉트릭 1주)"
     },
 
     "crypto": {
       "binance": {
         "btc_usd_value": 1675,
-        "usdc_usd": 725,
-        "usdt_usd": 5875.6,
-        "note": "AAVE 예치 $3,000 포함. BTC는 보유 유지, 나머지 회수 진행 중"
+        "note": "비트코인만 장기 보유"
       }
     },
 
@@ -77,6 +79,41 @@
         { "ticker": "HG=F",      "name": "구리 선물",        "note": "AI인프라·전기화 수요" },
         { "ticker": "URA",       "name": "우라늄 ETF (URA)", "note": "원전 르네상스, SMR" }
       ]
+    },
+
+    "buy_plan": {
+      "phase1": {
+        "label": "Phase 1 (오늘-2일)",
+        "ratio": 0.5,
+        "items": [
+          { "ticker": "055550.KS", "name": "신한지주",          "target_shares": 15, "status": "done", "note": "매수완료 평단 ₩100,700" },
+          { "ticker": "132030.KS", "name": "KODEX 골드선물",    "target_shares": 26, "status": "done", "note": "매수완료 평단 ₩28,570" },
+          { "ticker": "267260.KS", "name": "HD현대일렉트릭",    "target_shares": 1,  "status": "done", "note": "매수완료 평단 ₩967,000" },
+          { "ticker": "079550.KS", "name": "LIG넥스원",         "target_shares": 2,  "status": "done", "note": "매수완료 평단 ₩461,500" }
+        ]
+      },
+      "phase2": {
+        "label": "Phase 2 (조정 시)",
+        "ratio": 0.3,
+        "trigger": "1%+ 조정 발생 시",
+        "items": [
+          { "ticker": "055550.KS", "name": "신한지주",          "target_shares": 9,  "status": "waiting" },
+          { "ticker": "132030.KS", "name": "KODEX 골드선물",    "target_shares": 15, "status": "waiting" },
+          { "ticker": "267260.KS", "name": "HD현대일렉트릭",    "target_shares": 1,  "status": "waiting" },
+          { "ticker": "079550.KS", "name": "LIG넥스원",         "target_shares": 2,  "status": "waiting" }
+        ]
+      },
+      "phase3": {
+        "label": "Phase 3 (FOMC 후)",
+        "ratio": 0.2,
+        "trigger": "3/18 FOMC 결과 확인 후",
+        "items": [
+          { "ticker": "055550.KS", "name": "신한지주",          "target_shares": 6,  "status": "waiting" },
+          { "ticker": "132030.KS", "name": "KODEX 골드선물",    "target_shares": 11, "status": "waiting" },
+          { "ticker": "267260.KS", "name": "HD현대일렉트릭",    "target_shares": 1,  "status": "waiting" },
+          { "ticker": "079550.KS", "name": "LIG넥스원",         "target_shares": 1,  "status": "waiting" }
+        ]
+      }
     }
   },
 
