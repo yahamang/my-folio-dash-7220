@@ -276,9 +276,9 @@ def calculate_strategy_signals(config: dict, price_data: dict, portfolio: dict) 
     kosdaq = prices.get("^KQ11", {})
     vix = prices.get("^VIX", {})
 
-    kospi_chg = kospi.get("change_pct", 0)
-    kosdaq_chg = kosdaq.get("change_pct", 0)
-    vix_val = vix.get("price", 0)
+    kospi_chg = kospi.get("change_pct", 0) or 0
+    kosdaq_chg = kosdaq.get("change_pct", 0) or 0
+    vix_val = vix.get("price", 0) or 0
 
     # 모멘텀 스코어 (-3 ~ +3)
     momentum_score = 0

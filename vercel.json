@@ -1,15 +1,14 @@
 {
   "functions": {
-    "api/refresh.py": {
-      "runtime": "python3.9",
+    "api/**/*.py": {
       "maxDuration": 10,
       "memory": 1024
     },
-    "api/trigger-refresh.js": {
+    "api/**/*.js": {
       "maxDuration": 10
     }
   },
-  "env": {
-    "GITHUB_PAT": "@github_pat"
-  }
+  "rewrites": [
+    { "source": "/", "destination": "/api/refresh" }
+  ]
 }
