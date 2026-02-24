@@ -256,6 +256,247 @@ def calculate_portfolio(config: dict, price_data: dict) -> dict:
     }
 
 
+def calculate_strategy_signals(config: dict, price_data: dict, portfolio: dict) -> dict:
+    """
+    전략 신호 계산: 매수/매도/대기 판단을 위한 지표 생성
+
+    Returns:
+        market_momentum: 시장 모멘텀 분석 (KOSPI/KOSDAQ/VIX)
+        phase_signals: Phase 2/3 실행 신호
+        rebalancing_urgency: 리밸런싱 긴급도
+        recommended_action: 오늘의 권장 행동
+    """
+    prices = price_data.get("prices", {})
+    today = date.today()
+
+    # ═══════════════════════════════════════════════════════════════
+    # 1. 시장 모멘텀 분석
+    # ═══════════════════════════════════════════════════════════════
+    kospi = prices.get("^KS11", {})
+    kosdaq = prices.get("^KQ11", {})
+    vix = prices.get("^VIX", {})
+
+    kospi_chg = kospi.get("change_pct", 0)
+    kosdaq_chg = kosdaq.get("change_pct", 0)
+    vix_val = vix.get("price", 0)
+
+    # 모멘텀 스코어 (-3 ~ +3)
+    momentum_score = 0
+
+    # 한국 지수 추세
+    if kospi_chg > 1 and kosdaq_chg > 1:
+        momentum_score += 2
+        kr_trend = "강한 상승"
+    elif kospi_chg > 0 and kosdaq_chg > 0:
+        momentum_score += 1
+        kr_trend = "완만한 상승"
+    elif kospi_chg < -1 and kosdaq_chg < -1:
+        momentum_score -= 2
+        kr_trend = "강한 하락"
+    elif kospi_chg < 0 and kosdaq_chg < 0:
+        momentum_score -= 1
+        kr_trend = "완만한 하락"
+    else:
+        kr_trend = "혼조"
+
+    # VIX 공포지수
+    if vix_val >= 30:
+        momentum_score -= 2
+        vix_level = "위험 (패닉)"
+    elif vix_val >= 25:
+        momentum_score -= 1
+        vix_level = "주의 (불안)"
+    elif vix_val >= 20:
+        vix_level = "중립"
+    else:
+        momentum_score += 1
+        vix_level = "안정 (낙관)"
+
+    # 외국인/기관 순매수 (데이터 없으므로 placeholder)
+    foreign_inst_flow = "데이터 없음"
+
+    market_momentum = {
+        "score": momentum_score,
+        "kr_index_trend": kr_trend,
+        "kospi_chg": kospi_chg,
+        "kosdaq_chg": kosdaq_chg,
+        "vix_level": vix_level,
+        "vix_value": vix_val,
+        "foreign_institutional": foreign_inst_flow,
+        "interpretation": (
+            "강한 매수 환경" if momentum_score >= 2 else
+            "매수 선호" if momentum_score == 1 else
+            "중립 관망" if momentum_score == 0 else
+            "조정 대기" if momentum_score == -1 else
+            "강한 조정"
+        )
+    }
+
+    # ═══════════════════════════════════════════════════════════════
+    # 2. Phase 2/3 실행 신호
+    # ═══════════════════════════════════════════════════════════════
+
+    # 1%+ 조정 발생 여부
+    correction_1pct = (kospi_chg < -1 or kosdaq_chg < -1)
+
+    # FOMC 근접도 계산
+    fomc_events = [e for e in config["events"] if "FOMC" in e["title"]]
+    nearest_fomc = None
+    fomc_days_away = 999
+
+    if fomc_events:
+        future_fomc = [e for e in fomc_events if date.fromisoformat(e["date"]) >= today]
+        if future_fomc:
+            nearest = min(future_fomc, key=lambda e: date.fromisoformat(e["date"]))
+            nearest_fomc = nearest["date"]
+            fomc_days_away = (date.fromisoformat(nearest_fomc) - today).days
+
+    # Phase 2 신호: 1%+ 조정
+    phase2_triggered = correction_1pct
+
+    # Phase 3 신호: FOMC 7일 이내
+    phase3_triggered = (0 <= fomc_days_away <= 7)
+
+    # 매수 타이밍 스코어 (0-10)
+    buy_timing_score = 5  # 기본값
+    if correction_1pct:
+        buy_timing_score += 2
+    if vix_val >= 25:
+        buy_timing_score += 2
+    if momentum_score >= 2:
+        buy_timing_score -= 2
+    buy_timing_score = max(0, min(10, buy_timing_score))
+
+    phase_signals = {
+        "correction_detected": correction_1pct,
+        "correction_pct": min(kospi_chg, kosdaq_chg) if correction_1pct else 0,
+        "nearest_fomc": nearest_fomc or "없음",
+        "fomc_days_away": fomc_days_away if fomc_days_away < 999 else None,
+        "phase2_ready": phase2_triggered,
+        "phase3_ready": phase3_triggered,
+        "buy_timing_score": buy_timing_score,
+        "buy_timing_label": (
+            "매우 좋음" if buy_timing_score >= 8 else
+            "좋음" if buy_timing_score >= 6 else
+            "보통" if buy_timing_score >= 4 else
+            "나쁨"
+        )
+    }
+
+    # ═══════════════════════════════════════════════════════════════
+    # 3. 리밸런싱 긴급도
+    # ═══════════════════════════════════════════════════════════════
+
+    allocation = portfolio["allocation"]
+    over = [a for a in allocation if a["status"] == "over"]
+    under = [a for a in allocation if a["status"] == "under"]
+
+    # 가장 큰 이탈 자산군
+    max_over = max(over, key=lambda a: a["gap_pct"]) if over else None
+    max_under = max(under, key=lambda a: abs(a["gap_pct"])) if under else None
+
+    # 긴급도 점수 (0-10)
+    urgency_score = 0
+    if max_over and abs(max_over["gap_pct"]) > 10:
+        urgency_score += 5
+    if max_under and abs(max_under["gap_pct"]) > 10:
+        urgency_score += 5
+
+    rebalancing_urgency = {
+        "urgency_score": urgency_score,
+        "urgency_level": (
+            "매우 높음" if urgency_score >= 8 else
+            "높음" if urgency_score >= 5 else
+            "보통" if urgency_score >= 3 else
+            "낮음"
+        ),
+        "top_over": {
+            "label": max_over["label"],
+            "gap_pct": max_over["gap_pct"],
+            "gap_krw": max_over["gap_krw"],
+            "action": "매도 또는 추가 매수 중단"
+        } if max_over else None,
+        "top_under": {
+            "label": max_under["label"],
+            "gap_pct": max_under["gap_pct"],
+            "gap_krw": max_under["gap_krw"],
+            "action": "추가 매수 우선"
+        } if max_under else None,
+        "total_imbalanced": len(over) + len(under)
+    }
+
+    # ═══════════════════════════════════════════════════════════════
+    # 4. 오늘의 권장 액션
+    # ═══════════════════════════════════════════════════════════════
+
+    action = "관망"
+    rationale = []
+    metrics_to_watch = []
+
+    # Phase 2 실행 여부
+    if phase2_triggered and max_under:
+        action = "Phase 2 매수"
+        rationale.append(f"1%+ 조정 발생 ({min(kospi_chg, kosdaq_chg):.1f}%)")
+        rationale.append(f"부족 자산군: {max_under['label']} ({max_under['gap_pct']:+.1f}%p)")
+        metrics_to_watch.extend(["KOSPI/KOSDAQ 추가 하락", "VIX 30 돌파 여부"])
+
+    # Phase 3 실행 여부
+    elif phase3_triggered and max_under:
+        action = "Phase 3 매수 준비"
+        rationale.append(f"FOMC {fomc_days_away}일 전")
+        rationale.append(f"부족 자산군: {max_under['label']} ({max_under['gap_pct']:+.1f}%p)")
+        metrics_to_watch.extend(["FOMC 성명 톤", "연준 점도표"])
+
+    # 리밸런싱 매도 필요
+    elif max_over and abs(max_over["gap_pct"]) > 8:
+        action = "부분 매도 검토"
+        rationale.append(f"초과 자산군: {max_over['label']} ({max_over['gap_pct']:+.1f}%p)")
+        rationale.append("목표 비중으로 복귀 필요")
+        metrics_to_watch.extend(["추가 상승 시 매도 타이밍"])
+
+    # 과열 경계
+    elif momentum_score >= 2 and vix_val < 15:
+        action = "관망 (과열 주의)"
+        rationale.append("시장 과열 신호 (VIX 낮음 + 강한 상승)")
+        rationale.append("추격 매수 자제")
+        metrics_to_watch.extend(["VIX 상승 반전", "조정 진입 여부"])
+
+    # 일반 매수
+    elif max_under and buy_timing_score >= 6:
+        action = "분할 매수"
+        rationale.append(f"부족 자산군: {max_under['label']} ({max_under['gap_pct']:+.1f}%p)")
+        rationale.append(f"매수 타이밍 양호 ({buy_timing_score}/10점)")
+        metrics_to_watch.extend(["목표가 도달 여부", "추가 조정 대기"])
+
+    # 기본 관망
+    else:
+        rationale.append("큰 이탈 없음, 시장 중립")
+        rationale.append("정기 리밸런싱 일정 대기")
+        metrics_to_watch.extend(["FOMC 일정", "지수 추세 변화"])
+
+    # 7일 내 이벤트
+    upcoming_events = [
+        e for e in config["events"]
+        if 0 <= (date.fromisoformat(e["date"]) - today).days <= 7
+    ]
+
+    recommended_action = {
+        "action": action,
+        "rationale": rationale,
+        "metrics_to_watch": metrics_to_watch,
+        "upcoming_events": [
+            f"{e['date']} {e['title']}" for e in upcoming_events
+        ] if upcoming_events else ["없음"]
+    }
+
+    return {
+        "market_momentum": market_momentum,
+        "phase_signals": phase_signals,
+        "rebalancing_urgency": rebalancing_urgency,
+        "recommended_action": recommended_action
+    }
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 4. HTML 섹션 빌더들
 # ─────────────────────────────────────────────────────────────────────────────
@@ -671,6 +912,243 @@ def build_watchlist(config: dict, price_data: dict) -> str:
     return "\n".join(parts)
 
 
+def build_buy_plan(config: dict, price_data: dict) -> str:
+    """매수 계획 카드"""
+    buy_plan = config["portfolio"].get("buy_plan")
+    if not buy_plan:
+        return "<p class='muted'>매수 계획 없음</p>"
+
+    prices = price_data.get("prices", {})
+    parts = []
+
+    for phase_id in ["phase1", "phase2", "phase3"]:
+        phase = buy_plan.get(phase_id)
+        if not phase:
+            continue
+
+        label = phase.get("label", phase_id)
+        trigger = phase.get("trigger", "")
+        items = phase.get("items", [])
+
+        parts.append(f'<div class="buy-phase">')
+        parts.append(f'<div class="buy-phase-label">{label}')
+        if trigger:
+            parts.append(f' <span class="muted" style="font-size:11px">— {trigger}</span>')
+        parts.append('</div>')
+
+        for item in items:
+            ticker = item["ticker"]
+            name = item["name"]
+            target_shares = item["target_shares"]
+            status = item.get("status", "pending")
+            note = item.get("note", "")
+
+            # 현재가 조회
+            info = prices.get(ticker, {})
+            price = info.get("price")
+            chg = info.get("change_pct", 0)
+
+            if price:
+                is_kr = ticker.endswith(".KS") or ticker.endswith(".KQ")
+                price_str = f"₩{price:,.0f}" if is_kr else f"${price:.2f}"
+                amount = price * target_shares * (1 if is_kr else config["meta"]["usd_to_krw_fallback"])
+                amount_str = f"₩{amount:,.0f}"
+                chg_str = _fmt_chg(chg)
+                chg_cls = _chg_cls(chg)
+            else:
+                price_str = "—"
+                amount_str = "—"
+                chg_str = "—"
+                chg_cls = "neutral"
+
+            status_badge = {
+                "pending": '<span class="buy-status-pending">대기</span>',
+                "waiting": '<span class="buy-status-waiting">조건대기</span>',
+                "done": '<span class="buy-status-done">완료</span>',
+            }.get(status, "")
+
+            parts.append(f"""
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">{name}</span>
+                <span class="muted" style="font-size:11px"> × {target_shares}주</span>
+                {status_badge}
+              </div>
+              <div class="buy-right">
+                <span>{price_str}</span>
+                <span class="{chg_cls}" style="margin-left:6px">{chg_str}</span>
+                <span class="muted" style="margin-left:8px">{amount_str}</span>
+              </div>
+            </div>""")
+
+            if note:
+                parts.append(f'<div class="buy-note muted">{note}</div>')
+
+        parts.append('</div>')
+
+    return "\n".join(parts)
+
+
+def build_strategy_recommendations(config: dict, price_data: dict, portfolio: dict, signals: dict) -> str:
+    """전략 추천 섹션 HTML 생성 (4개 컴포넌트)"""
+
+    mm = signals["market_momentum"]
+    ps = signals["phase_signals"]
+    ru = signals["rebalancing_urgency"]
+    ra = signals["recommended_action"]
+
+    # 1. 시장 모멘텀 분석
+    mm_score_cls = "green" if mm["score"] >= 2 else ("red" if mm["score"] <= -2 else "muted")
+
+    momentum_html = f"""
+    <div class="strategy-component">
+      <div class="strategy-comp-title">1. 시장 모멘텀 분석</div>
+      <div class="strategy-grid">
+        <div class="strategy-metric">
+          <span class="muted">한국 지수</span>
+          <span class="{_chg_cls(mm['kospi_chg'])}">{mm['kr_index_trend']}</span>
+          <span class="muted" style="font-size:10px">
+            KOSPI {_fmt_chg(mm['kospi_chg'])} · KOSDAQ {_fmt_chg(mm['kosdaq_chg'])}
+          </span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">VIX 공포지수</span>
+          <span class="{_chg_cls(-mm['vix_value'] + 20)}">{mm['vix_level']}</span>
+          <span class="muted" style="font-size:10px">{mm['vix_value']:.1f}</span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">외국인/기관</span>
+          <span class="muted">{mm['foreign_institutional']}</span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">종합 판단</span>
+          <span class="{mm_score_cls}" style="font-weight:700">{mm['interpretation']}</span>
+          <span class="muted" style="font-size:10px">점수: {mm['score']:+d}/3</span>
+        </div>
+      </div>
+    </div>"""
+
+    # 2. Phase 2/3 실행 신호
+    p2_cls = "green" if ps["phase2_ready"] else "muted"
+    p3_cls = "green" if ps["phase3_ready"] else "muted"
+    timing_cls = (
+        "green" if ps["buy_timing_score"] >= 7 else
+        "blue" if ps["buy_timing_score"] >= 5 else
+        "muted"
+    )
+
+    phase_html = f"""
+    <div class="strategy-component">
+      <div class="strategy-comp-title">2. Phase 2/3 실행 신호</div>
+      <div class="strategy-grid">
+        <div class="strategy-metric">
+          <span class="muted">1%+ 조정 발생</span>
+          <span class="{p2_cls}" style="font-weight:700">
+            {'✓ 발생' if ps['correction_detected'] else '✗ 미발생'}
+          </span>
+          <span class="muted" style="font-size:10px">
+            {f"최대 {ps['correction_pct']:.1f}%" if ps['correction_detected'] else "Phase 2 대기"}
+          </span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">FOMC 근접도</span>
+          <span class="{p3_cls}" style="font-weight:700">
+            {f"D-{ps['fomc_days_away']}" if ps['fomc_days_away'] else "예정 없음"}
+          </span>
+          <span class="muted" style="font-size:10px">
+            {ps['nearest_fomc'] if ps['nearest_fomc'] != '없음' else 'Phase 3 대기'}
+          </span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">매수 타이밍</span>
+          <span class="{timing_cls}" style="font-weight:700">{ps['buy_timing_label']}</span>
+          <span class="muted" style="font-size:10px">{ps['buy_timing_score']}/10점</span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">실행 단계</span>
+          <span class="{'green' if ps['phase2_ready'] or ps['phase3_ready'] else 'muted'}" style="font-weight:700">
+            {'Phase 2 실행' if ps['phase2_ready'] else ('Phase 3 준비' if ps['phase3_ready'] else 'Phase 1 대기')}
+          </span>
+        </div>
+      </div>
+    </div>"""
+
+    # 3. 리밸런싱 긴급도
+    urgency_cls = (
+        "red" if ru["urgency_score"] >= 7 else
+        "yellow" if ru["urgency_score"] >= 4 else
+        "green"
+    )
+
+    priority_rows = []
+    if ru["top_over"]:
+        over = ru["top_over"]
+        priority_rows.append(f"""
+        <div class="rebal-priority-row">
+          <span class="badge badge-over">초과</span>
+          <span>{over['label']}</span>
+          <span class="red">{over['gap_pct']:+.1f}%p (₩{abs(over['gap_krw']):,.0f})</span>
+          <span class="muted" style="font-size:11px">{over['action']}</span>
+        </div>""")
+
+    if ru["top_under"]:
+        under = ru["top_under"]
+        priority_rows.append(f"""
+        <div class="rebal-priority-row">
+          <span class="badge badge-under">부족</span>
+          <span>{under['label']}</span>
+          <span class="blue">{under['gap_pct']:+.1f}%p (₩{abs(under['gap_krw']):,.0f})</span>
+          <span class="muted" style="font-size:11px">{under['action']}</span>
+        </div>""")
+
+    if not priority_rows:
+        priority_rows.append('<div class="muted" style="text-align:center;padding:10px">✅ 모든 자산군 정상 범위</div>')
+
+    rebal_html = f"""
+    <div class="strategy-component">
+      <div class="strategy-comp-title">3. 리밸런싱 긴급도</div>
+      <div class="strategy-urgency">
+        <div class="urgency-badge">
+          <span class="muted">긴급도</span>
+          <span class="{urgency_cls}" style="font-size:18px;font-weight:700">{ru['urgency_level']}</span>
+          <span class="muted" style="font-size:10px">{ru['urgency_score']}/10점 · 이탈 {ru['total_imbalanced']}개</span>
+        </div>
+        <div class="priority-actions">
+          {''.join(priority_rows)}
+        </div>
+      </div>
+    </div>"""
+
+    # 4. 오늘의 액션 플랜
+    action_cls = (
+        "green" if "매수" in ra["action"] else
+        ("red" if "매도" in ra["action"] else "blue")
+    )
+
+    action_html = f"""
+    <div class="strategy-component strategy-action">
+      <div class="strategy-comp-title">4. 오늘의 액션 플랜</div>
+      <div class="action-box {action_cls}">
+        <div class="action-main">{ra['action']}</div>
+        <div class="action-rationale">
+          {'<br>'.join(['• ' + r for r in ra['rationale']])}
+        </div>
+      </div>
+      <div class="action-metrics">
+        <div class="action-section">
+          <div class="action-section-title">주목할 지표</div>
+          {'<br>'.join(['• ' + m for m in ra['metrics_to_watch']])}
+        </div>
+        <div class="action-section">
+          <div class="action-section-title">7일 내 이벤트</div>
+          {'<br>'.join(['• ' + e for e in ra['upcoming_events']])}
+        </div>
+      </div>
+    </div>"""
+
+    return momentum_html + phase_html + rebal_html + action_html
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 5. HTML 조합
 # ─────────────────────────────────────────────────────────────────────────────
@@ -800,12 +1278,79 @@ tr:last-child td{border-bottom:none}
          padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
 .div-row:last-child{border-bottom:none}
 
-@media(max-width:900px){.grid2,.grid3{grid-template-columns:1fr}}
+/* 매수 계획 */
+.buy-phase{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.buy-phase:last-child{border-bottom:none}
+.buy-phase-label{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--blue)}
+.buy-row{display:flex;justify-content:space-between;align-items:center;
+         padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.buy-row:last-child{border-bottom:none}
+.buy-left{display:flex;align-items:center;gap:8px}
+.buy-name{font-weight:600}
+.buy-right{display:flex;align-items:center;gap:4px;text-align:right}
+.buy-note{font-size:11px;padding-left:8px;margin-top:2px;color:var(--muted)}
+.buy-status-pending{display:inline-block;padding:2px 8px;border-radius:10px;
+                    font-size:10px;font-weight:700;background:rgba(251,191,36,.2);color:var(--yellow)}
+.buy-status-waiting{display:inline-block;padding:2px 8px;border-radius:10px;
+                    font-size:10px;font-weight:700;background:rgba(148,163,184,.2);color:var(--muted)}
+.buy-status-done{display:inline-block;padding:2px 8px;border-radius:10px;
+                 font-size:10px;font-weight:700;background:rgba(74,222,128,.2);color:var(--green)}
+
+/* 전략 추천 */
+.strategy-component{margin-bottom:24px;padding-bottom:24px;
+  border-bottom:1px solid var(--border)}
+.strategy-component:last-child{border-bottom:none}
+.strategy-comp-title{font-size:13px;font-weight:700;color:var(--blue);
+  margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.strategy-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.strategy-metric{background:var(--bg);border-radius:8px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:4px}
+.strategy-metric>span:nth-child(2){font-size:15px;font-weight:700}
+
+.strategy-urgency{display:grid;grid-template-columns:200px 1fr;gap:16px}
+.urgency-badge{background:var(--bg);border-radius:8px;padding:16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.priority-actions{display:flex;flex-direction:column;gap:8px}
+.rebal-priority-row{display:grid;grid-template-columns:60px 1fr 150px 1fr;
+  gap:10px;align-items:center;padding:10px 12px;background:var(--bg);
+  border-radius:8px;font-size:12px}
+
+.strategy-action .action-box{padding:16px;border-radius:10px;margin-bottom:16px}
+.strategy-action .action-box.green{background:rgba(74,222,128,.1);border:1px solid var(--green)}
+.strategy-action .action-box.red{background:rgba(248,113,113,.1);border:1px solid var(--red)}
+.strategy-action .action-box.blue{background:rgba(96,165,250,.1);border:1px solid var(--blue)}
+.action-main{font-size:18px;font-weight:700;margin-bottom:10px}
+.action-rationale{font-size:13px;line-height:1.8;color:var(--muted)}
+.action-metrics{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.action-section{background:var(--bg);border-radius:8px;padding:12px;font-size:12px;
+  line-height:1.7}
+.action-section-title{font-weight:700;margin-bottom:8px;color:var(--blue)}
+
+/* Refresh Button */
+.header-right{display:flex;align-items:center;gap:20px}
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:var(--font)}
+.refresh-btn:hover{background:var(--border);border-color:var(--blue)}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+.refresh-btn svg{transition:transform .5s}
+.refresh-btn.spinning svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .grid2,.grid3{grid-template-columns:1fr}
+  .strategy-grid{grid-template-columns:1fr 1fr}
+  .strategy-urgency{grid-template-columns:1fr}
+  .action-metrics{grid-template-columns:1fr}
+}
 
 @media(max-width:480px){
   .wrap{padding:10px 8px}
   .card{padding:14px 12px;border-radius:10px}
   .header{flex-direction:column;align-items:flex-start;gap:6px}
+  .header-right{flex-direction:column-reverse;align-items:flex-start;gap:10px}
+  .refresh-btn{padding:6px 12px;font-size:11px}
   .total-val{font-size:22px;text-align:left}
   .total-usd{text-align:left}
   .header .sub{font-size:11px}
@@ -821,11 +1366,14 @@ tr:last-child td{border-bottom:none}
   .risk-grid{grid-template-columns:1fr 1fr}
   .summary-value{font-size:15px}
   .risk-value{font-size:14px}
+  .strategy-grid{grid-template-columns:1fr}
+  .rebal-priority-row{grid-template-columns:1fr;gap:6px}
+  .action-main{font-size:16px}
 }
 """
 
 
-def generate_html(config: dict, price_data: dict, portfolio: dict) -> str:
+def generate_html(config: dict, price_data: dict, portfolio: dict, strategy_signals: dict) -> str:
     now      = datetime.now().strftime("%Y-%m-%d %H:%M")
     total    = portfolio["total_krw"]
     usd_krw  = portfolio["usd_krw"]
@@ -858,9 +1406,17 @@ def generate_html(config: dict, price_data: dict, portfolio: dict) -> str:
       <h1>📊 투자 대시보드</h1>
       <div class="sub">업데이트: {now} &nbsp;|&nbsp; 환율: ₩{usd_krw:,.0f}/USD</div>
     </div>
-    <div>
-      <div class="total-val">₩{total:,.0f}</div>
-      <div class="total-usd">≈ ${total/usd_krw:,.0f} USD</div>
+    <div class="header-right">
+      <button id="refreshBtn" class="refresh-btn" onclick="triggerRefresh()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+        </svg>
+        <span id="refreshText">새로고침</span>
+      </button>
+      <div>
+        <div class="total-val">₩{total:,.0f}</div>
+        <div class="total-usd">≈ ${total/usd_krw:,.0f} USD</div>
+      </div>
     </div>
   </div>
 
@@ -879,6 +1435,14 @@ def generate_html(config: dict, price_data: dict, portfolio: dict) -> str:
     <div class="card">
       <div class="card-title">리스크 지표</div>
       {build_risk(portfolio, price_data)}
+    </div>
+  </div>
+
+  <!-- 전략 추천 -->
+  <div class="full">
+    <div class="card">
+      <div class="card-title">💡 전략 추천 (Strategy Recommendations)</div>
+      {build_strategy_recommendations(config, price_data, portfolio, strategy_signals)}
     </div>
   </div>
 
@@ -930,7 +1494,54 @@ def generate_html(config: dict, price_data: dict, portfolio: dict) -> str:
     </div>
   </div>
 
+  <!-- 매수 계획 -->
+  <div class="full">
+    <div class="card">
+      <div class="card-title">📋 매수 계획 (3단계 분할 매수)</div>
+      {build_buy_plan(config, price_data)}
+    </div>
+  </div>
+
 </div>
+
+<script>
+async function triggerRefresh() {{
+  const btn = document.getElementById('refreshBtn');
+  const text = document.getElementById('refreshText');
+
+  btn.disabled = true;
+  btn.classList.add('spinning');
+  text.textContent = '업데이트 중...';
+
+  try {{
+    const response = await fetch('https://YOUR_VERCEL_URL/api/trigger-refresh', {{
+      method: 'POST',
+      headers: {{ 'Content-Type': 'application/json' }}
+    }});
+
+    const data = await response.json();
+
+    if (data.success) {{
+      text.textContent = '✓ 시작됨';
+      setTimeout(() => {{
+        text.textContent = '새로고침';
+        btn.disabled = false;
+        btn.classList.remove('spinning');
+      }}, 3000);
+    }} else {{
+      throw new Error('Failed to trigger workflow');
+    }}
+  }} catch (error) {{
+    text.textContent = '✗ 실패';
+    btn.classList.remove('spinning');
+    setTimeout(() => {{
+      text.textContent = '새로고침';
+      btn.disabled = false;
+    }}, 3000);
+  }}
+}}
+</script>
+
 </body>
 </html>"""
 
@@ -988,8 +1599,11 @@ def main():
     print("🔢 포트폴리오 계산 중...")
     portfolio = calculate_portfolio(config, price_data)
 
+    print("🧠 전략 신호 분석 중...")
+    strategy_signals = calculate_strategy_signals(config, price_data, portfolio)
+
     print("🎨 HTML 생성 중...")
-    html = generate_html(config, price_data, portfolio)
+    html = generate_html(config, price_data, portfolio, strategy_signals)
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write(html)
@@ -1004,6 +1618,7 @@ def main():
     print(f"\n{'─'*50}")
     print(f"💰 총 자산: ₩{total:,.0f}  (${total/usd_krw:,.0f})")
     print(f"💱 환율:    ₩{usd_krw:,.0f}/USD")
+    print(f"📊 오늘의 추천: {strategy_signals['recommended_action']['action']}")
     print(f"{'─'*50}")
 
     needs = [x for x in portfolio["allocation"] if x["status"] != "ok"]

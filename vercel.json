@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "api/trigger-refresh.js": {
+      "maxDuration": 10
+    }
+  },
+  "env": {
+    "GITHUB_PAT": "@github_pat"
+  }
+}
