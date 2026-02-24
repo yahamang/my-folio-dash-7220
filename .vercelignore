@@ -6,3 +6,5 @@ __pycache__/
 .github/
 venv/
 *.log
+dashboard.html
+integrations/.env

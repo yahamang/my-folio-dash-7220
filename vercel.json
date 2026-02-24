@@ -1,5 +1,10 @@
 {
   "functions": {
+    "api/refresh.py": {
+      "runtime": "python3.9",
+      "maxDuration": 10,
+      "memory": 1024
+    },
     "api/trigger-refresh.js": {
       "maxDuration": 10
     }

@@ -1514,22 +1514,23 @@ async function triggerRefresh() {{
   text.textContent = '업데이트 중...';
 
   try {{
-    const response = await fetch('https://YOUR_VERCEL_URL/api/trigger-refresh', {{
-      method: 'POST',
-      headers: {{ 'Content-Type': 'application/json' }}
+    // Fetch fresh HTML from Python serverless function
+    const response = await fetch('/api/refresh', {{
+      method: 'GET',
+      headers: {{ 'Accept': 'text/html' }}
     }});
 
-    const data = await response.json();
+    if (response.ok) {{
+      const newHtml = await response.text();
 
-    if (data.success) {{
-      text.textContent = '✓ 시작됨';
-      setTimeout(() => {{
-        text.textContent = '새로고침';
-        btn.disabled = false;
-        btn.classList.remove('spinning');
-      }}, 3000);
+      // Replace entire document with fresh HTML
+      document.open();
+      document.write(newHtml);
+      document.close();
+
+      // Success feedback will be in the new page
     }} else {{
-      throw new Error('Failed to trigger workflow');
+      throw new Error(`HTTP ${{response.status}}`);
     }}
   }} catch (error) {{
     text.textContent = '✗ 실패';
@@ -1547,7 +1548,42 @@ async function triggerRefresh() {{
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# 6. 스냅샷 저장 + 메인
+# 6. HTML 생성 (Vercel serverless용)
+# ─────────────────────────────────────────────────────────────────────────────
+def generate_dashboard_html(skip_binance=False) -> str:
+    """
+    Generate dashboard HTML without file I/O.
+    Returns HTML string directly for serverless function.
+
+    Args:
+        skip_binance: If True, skip Binance API call (for faster execution)
+
+    Returns:
+        HTML string
+    """
+    config = load_config()
+    price_data = fetch_all_prices(config)
+
+    # Binance API 잔고 조회 (optional)
+    if not skip_binance and HAS_BINANCE:
+        btc_price = price_data["prices"].get("BTC-USD", {}).get("price", 0) or 0
+        try:
+            binance_live = _binance_summary(btc_price)
+            price_data["binance"] = binance_live
+        except Exception:
+            price_data["binance"] = None
+    else:
+        price_data["binance"] = None
+
+    portfolio = calculate_portfolio(config, price_data)
+    strategy_signals = calculate_strategy_signals(config, price_data, portfolio)
+    html = generate_html(config, price_data, portfolio, strategy_signals)
+
+    return html
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 7. 스냅샷 저장 + 메인
 # ─────────────────────────────────────────────────────────────────────────────
 def save_snapshot(price_data: dict, portfolio: dict) -> Path:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -1604,6 +1640,8 @@ def main():
 
     print("🎨 HTML 생성 중...")
     html = generate_html(config, price_data, portfolio, strategy_signals)
+
+    # Save to file
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write(html)
