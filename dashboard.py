@@ -51,6 +51,11 @@ def fetch_all_prices(config: dict) -> dict:
     if not HAS_YFINANCE:
         return {"prices": {}, "errors": ["yfinance not installed"], "fetched_at": datetime.now().isoformat()}
 
+    # Set User-Agent for Vercel compatibility
+    import requests
+    session = requests.Session()
+    session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+
     needed = set()
     for acc in config["portfolio"]["accounts"].values():
         for h in acc["holdings"]:
@@ -64,7 +69,7 @@ def fetch_all_prices(config: dict) -> dict:
 
     try:
         raw = yf.download(ticker_list, period="2d", interval="1d",
-                          progress=False, auto_adjust=True)
+                          progress=False, auto_adjust=True, timeout=30, session=session)
         close = raw["Close"]
 
         for t in ticker_list:
