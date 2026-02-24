@@ -3,7 +3,11 @@ import sys
 import os
 
 # Add parent directory to path to import dashboard
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+parent_dir = os.path.join(os.path.dirname(__file__), '..')
+sys.path.insert(0, parent_dir)
+
+# Change working directory to parent (where config.json is)
+os.chdir(parent_dir)
 
 from dashboard import generate_dashboard_html
 
