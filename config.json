@@ -48,8 +48,8 @@
 
     "crypto": {
       "binance": {
-        "btc_usd_value": 1675,
-        "note": "비트코인만 장기 보유"
+        "btc_usd_value": 1506,
+        "note": "비트코인만 장기 보유 (2/24 기준)"
       }
     },
 
