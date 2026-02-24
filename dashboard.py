@@ -51,11 +51,7 @@ def fetch_all_prices(config: dict) -> dict:
     if not HAS_YFINANCE:
         return {"prices": {}, "errors": ["yfinance not installed"], "fetched_at": datetime.now().isoformat()}
 
-    # Set User-Agent for Vercel compatibility
-    import requests
-    session = requests.Session()
-    session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-
+    # 필요한 티커 수집
     needed = set()
     for acc in config["portfolio"]["accounts"].values():
         for h in acc["holdings"]:
@@ -64,35 +60,64 @@ def fetch_all_prices(config: dict) -> dict:
         for item in config["market_indicators"].get(group, []):
             needed.add(item["ticker"])
 
+    # 한국 주식과 미국 주식 분리
+    korean_stocks = [t for t in needed if t.endswith(".KS") or t.endswith(".KQ")]
+    us_stocks = [t for t in needed if not (t.endswith(".KS") or t.endswith(".KQ"))]
+
     prices, errors = {}, []
-    ticker_list = list(needed)
 
-    try:
-        raw = yf.download(ticker_list, period="2d", interval="1d",
-                          progress=False, auto_adjust=True, timeout=30, session=session)
-        close = raw["Close"]
+    # 1. 한국 주식: KIS API 사용
+    if korean_stocks:
+        try:
+            from integrations.kis import fetch_korean_stocks
+            kis_result = fetch_korean_stocks(korean_stocks)
+            for ticker, data in kis_result["prices"].items():
+                if data:
+                    prices[ticker] = {
+                        "price": data["price"],
+                        "prev_close": data["price"] / (1 + data["change_pct"]/100),
+                        "change_pct": data["change_pct"]
+                    }
+                else:
+                    prices[ticker] = {"price": None, "prev_close": None, "change_pct": 0}
+            errors.extend(kis_result["errors"])
+        except Exception as e:
+            errors.append(f"KIS API: {e}")
+            # KIS 실패 시 fallback to yfinance
+            us_stocks.extend(korean_stocks)
 
-        for t in ticker_list:
-            try:
-                series = close[t] if len(ticker_list) > 1 else close
-                series = series.dropna()
-                if len(series) == 0:
-                    raise ValueError("no data")
-                cur  = float(series.iloc[-1])
-                prev = float(series.iloc[-2]) if len(series) >= 2 else cur
-                chg  = (cur - prev) / prev * 100 if prev else 0
-                prices[t] = {"price": cur, "prev_close": prev, "change_pct": round(chg, 2)}
-            except Exception as e:
-                errors.append(f"{t}: {e}")
-                prices[t] = {"price": None, "prev_close": None, "change_pct": 0}
-    except Exception as e:
-        errors.append(f"batch download: {e}")
+    # 2. 미국 주식/ETF/지수: yfinance 사용
+    if us_stocks:
+        try:
+            import requests
+            session = requests.Session()
+            session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+
+            raw = yf.download(us_stocks, period="2d", interval="1d",
+                              progress=False, auto_adjust=True, timeout=30, session=session)
+            close = raw["Close"]
+
+            for t in us_stocks:
+                try:
+                    series = close[t] if len(us_stocks) > 1 else close
+                    series = series.dropna()
+                    if len(series) == 0:
+                        raise ValueError("no data")
+                    cur  = float(series.iloc[-1])
+                    prev = float(series.iloc[-2]) if len(series) >= 2 else cur
+                    chg  = (cur - prev) / prev * 100 if prev else 0
+                    prices[t] = {"price": cur, "prev_close": prev, "change_pct": round(chg, 2)}
+                except Exception as e:
+                    errors.append(f"{t}: {e}")
+                    prices[t] = {"price": None, "prev_close": None, "change_pct": 0}
+        except Exception as e:
+            errors.append(f"yfinance: {e}")
 
     return {
         "prices": prices,
         "errors": errors,
         "fetched_at": datetime.now().isoformat(timespec="seconds"),
-        "source": "Yahoo Finance",
+        "source": "KIS API (한국 주식) + Yahoo Finance (미국)",
         "binance": None,   # main()에서 채워짐
     }
 
