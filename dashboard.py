@@ -35,6 +35,13 @@ try:
 except ImportError:
     HAS_BINANCE = False
 
+# News 연동 시도
+try:
+    from integrations.news import load_news_cache, format_cache_timestamp, CATEGORY_LABELS, CATEGORY_COLORS
+    HAS_NEWS = True
+except ImportError:
+    HAS_NEWS = False
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 1. 설정 로더
@@ -564,6 +571,71 @@ def _chg_cls(chg):
 def _fmt_chg(chg):
     sign = "+" if chg >= 0 else ""
     return f"{sign}{chg:.2f}%"
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 뉴스 섹션
+# ─────────────────────────────────────────────────────────────────────────────
+def build_news() -> str:
+    """뉴스 헤드라인 섹션 빌드"""
+    if not HAS_NEWS:
+        return ""
+
+    news_data = load_news_cache()
+    if not news_data or not news_data.get("headlines"):
+        return ""
+
+    headlines = news_data.get("headlines", [])
+    if not headlines:
+        return ""
+
+    # 타임스탬프 포맷
+    timestamp = format_cache_timestamp(news_data)
+
+    parts = []
+    parts.append('<div class="news-section">')
+    parts.append(f'  <h2>📰 시황 속보 <span class="news-timestamp">({timestamp})</span></h2>')
+    parts.append('  <div class="news-grid">')
+
+    for headline in headlines[:5]:  # 최대 5개
+        category = headline.get("category", "unknown")
+        category_label = CATEGORY_LABELS.get(category, "기타")
+        category_color = CATEGORY_COLORS.get(category, "#6b7280")
+
+        title = headline.get("title", "제목 없음")
+        # 80자 제한
+        if len(title) > 80:
+            title = title[:77] + "..."
+
+        url = headline.get("url", "#")
+        source = headline.get("source", "출처미상")
+        published = headline.get("published", "")
+
+        # 발행일 포맷
+        pub_display = ""
+        if published:
+            try:
+                pub_dt = datetime.fromisoformat(published.replace("Z", ""))
+                age_hours = (datetime.now() - pub_dt).total_seconds() / 3600
+                if age_hours < 24:
+                    hours = int(age_hours)
+                    pub_display = f"{hours}시간 전"
+                else:
+                    days = int(age_hours / 24)
+                    pub_display = f"{days}일 전"
+            except:
+                pub_display = published[:10]
+
+        parts.append(f'    <div class="news-card" style="border-left-color: {category_color};">')
+        parts.append(f'      <div class="news-category" style="color: {category_color};">{category_label}</div>')
+        parts.append(f'      <div class="news-headline"><a href="{url}" target="_blank">{title}</a></div>')
+        parts.append(f'      <div class="news-meta">{source} · {pub_display}</div>')
+        parts.append('    </div>')
+
+    parts.append('  </div>')
+    parts.append('</div>')
+
+    return "\n".join(parts)
 
 
 def build_market(config: dict, price_data: dict) -> str:
@@ -1384,6 +1456,25 @@ tr:last-child td{border-bottom:none}
   line-height:1.7}
 .action-section-title{font-weight:700;margin-bottom:8px;color:var(--blue)}
 
+/* News Section */
+.news-section{background:rgba(59,130,246,.05);border-left:4px solid var(--blue);
+  padding:20px;margin-bottom:20px;border-radius:8px}
+.news-section h2{margin:0 0 16px 0;font-size:18px;font-weight:700;
+  display:flex;align-items:center;gap:10px}
+.news-timestamp{font-size:12px;font-weight:400;color:var(--muted)}
+.news-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:12px;margin-top:16px}
+.news-card{background:var(--card);border-radius:8px;padding:14px;
+  border-left:4px solid var(--border);transition:all .2s}
+.news-card:hover{box-shadow:0 2px 8px rgba(0,0,0,.1);transform:translateY(-2px)}
+.news-category{font-size:11px;font-weight:700;text-transform:uppercase;
+  margin-bottom:8px;letter-spacing:.5px}
+.news-headline{margin-bottom:8px}
+.news-headline a{color:var(--text);text-decoration:none;font-size:14px;
+  line-height:1.5;font-weight:600}
+.news-headline a:hover{color:var(--blue);text-decoration:underline}
+.news-meta{font-size:11px;color:var(--muted)}
+
 /* Refresh Button */
 .header-right{display:flex;align-items:center;gap:20px}
 .refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;
@@ -1479,6 +1570,9 @@ def generate_html(config: dict, price_data: dict, portfolio: dict, strategy_sign
   </div>
 
   {err_html}
+
+  <!-- 뉴스 속보 -->
+  {build_news()}
 
   <!-- 수익성 요약 -->
   <div class="full">
