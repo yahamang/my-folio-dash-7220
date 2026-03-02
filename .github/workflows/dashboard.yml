@@ -34,7 +34,7 @@ jobs:
           echo "KIS_ENV=real" >> integrations/.env
 
       - name: Generate dashboard
-        run: python3 dashboard.py --no-save
+        run: python3 dashboard.py
 
       - name: Prepare deploy directory
         run: |

@@ -12,7 +12,7 @@
         "name": "연금계좌",
         "type": "pension",
         "holdings": [
-          { "ticker": "133690.KS", "name": "TIGER 나스닥100",         "shares": 5,   "asset_class": "pension",         "avg_price": 110450, "avg_cost_krw": 552250,  "dividend_yield": 0.5 },
+          { "ticker": "133690.KS", "name": "TIGER 미국나스닥100",         "shares": 5,   "asset_class": "pension",         "avg_price": 110450, "avg_cost_krw": 552250,  "dividend_yield": 0.5 },
           { "ticker": "458730.KS", "name": "TIGER 미국배당다우존스",   "shares": 194, "asset_class": "pension",         "avg_price": 11678,  "avg_cost_krw": 2265320, "dividend_yield": 3.0 }
         ]
       },
@@ -21,12 +21,12 @@
         "type": "isa",
         "holdings": [
           { "ticker": "069500.KS", "name": "KODEX 200",               "shares": 23,  "asset_class": "korea_index",     "avg_price": 56730,  "avg_cost_krw": 1304790, "dividend_yield": 1.5 },
-          { "ticker": "133690.KS", "name": "TIGER 나스닥100",          "shares": 12,  "asset_class": "global_growth",   "avg_price": 127219, "avg_cost_krw": 1526623, "dividend_yield": 0.5 },
+          { "ticker": "133690.KS", "name": "TIGER 미국나스닥100",          "shares": 12,  "asset_class": "global_growth",   "avg_price": 127219, "avg_cost_krw": 1526623, "dividend_yield": 0.5 },
           { "ticker": "458730.KS", "name": "TIGER 미국배당다우존스",   "shares": 150, "asset_class": "global_dividend", "avg_price": 11883,  "avg_cost_krw": 1782465, "dividend_yield": 3.0 },
           { "ticker": "055550.KS", "name": "신한지주",                "shares": 15,  "asset_class": "korea_low_pbr",   "avg_price": 100700, "avg_cost_krw": 1510500, "dividend_yield": 4.8 },
           { "ticker": "267260.KS", "name": "HD현대일렉트릭",           "shares": 1,   "asset_class": "korea_electric",  "avg_price": 967000, "avg_cost_krw": 967000,  "dividend_yield": 1.5 },
           { "ticker": "079550.KS", "name": "LIG넥스원",                "shares": 2,   "asset_class": "korea_defense",   "avg_price": 461500, "avg_cost_krw": 923000,  "dividend_yield": 1.0 },
-          { "ticker": "132030.KS", "name": "KODEX 골드선물",           "shares": 26,  "asset_class": "commodities",     "avg_price": 28570,  "avg_cost_krw": 742820,  "dividend_yield": 0 }
+          { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",           "shares": 26,  "asset_class": "commodities",     "avg_price": 28570,  "avg_cost_krw": 742820,  "dividend_yield": 0 }
         ]
       },
       "overseas": {
@@ -89,7 +89,7 @@
         "ratio": 0.5,
         "items": [
           { "ticker": "055550.KS", "name": "신한지주",          "target_shares": 15, "status": "done", "note": "매수완료 평단 ₩100,700" },
-          { "ticker": "132030.KS", "name": "KODEX 골드선물",    "target_shares": 26, "status": "done", "note": "매수완료 평단 ₩28,570" },
+          { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",    "target_shares": 26, "status": "done", "note": "매수완료 평단 ₩28,570" },
           { "ticker": "267260.KS", "name": "HD현대일렉트릭",    "target_shares": 1,  "status": "done", "note": "매수완료 평단 ₩967,000" },
           { "ticker": "079550.KS", "name": "LIG넥스원",         "target_shares": 2,  "status": "done", "note": "매수완료 평단 ₩461,500" }
         ]
@@ -100,7 +100,7 @@
         "trigger": "1%+ 조정 발생 시",
         "items": [
           { "ticker": "055550.KS", "name": "신한지주",          "target_shares": 9,  "status": "waiting" },
-          { "ticker": "132030.KS", "name": "KODEX 골드선물",    "target_shares": 15, "status": "waiting" },
+          { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",    "target_shares": 15, "status": "waiting" },
           { "ticker": "267260.KS", "name": "HD현대일렉트릭",    "target_shares": 1,  "status": "waiting" },
           { "ticker": "079550.KS", "name": "LIG넥스원",         "target_shares": 2,  "status": "waiting" }
         ]
@@ -111,7 +111,7 @@
         "trigger": "3/18 FOMC 결과 확인 후",
         "items": [
           { "ticker": "055550.KS", "name": "신한지주",          "target_shares": 6,  "status": "waiting" },
-          { "ticker": "132030.KS", "name": "KODEX 골드선물",    "target_shares": 11, "status": "waiting" },
+          { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",    "target_shares": 11, "status": "waiting" },
           { "ticker": "267260.KS", "name": "HD현대일렉트릭",    "target_shares": 1,  "status": "waiting" },
           { "ticker": "079550.KS", "name": "LIG넥스원",         "target_shares": 1,  "status": "waiting" }
         ]
