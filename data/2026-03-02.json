@@ -1,0 +1,118 @@
+{
+  "date": "2026-03-02",
+  "total_krw": 21288126.8,
+  "usd_krw": 1443,
+  "allocation": [
+    {
+      "id": "global_growth",
+      "label": "글로벌 성장 (나스닥/S&P)",
+      "color": "#60a5fa",
+      "current_krw": 1908600.0,
+      "current_pct": 9.0,
+      "target_pct": 15,
+      "gap_pct": -6.0,
+      "gap_krw": -1284619,
+      "status": "under"
+    },
+    {
+      "id": "global_dividend",
+      "label": "글로벌 배당 (SCHD/다우존스)",
+      "color": "#4ade80",
+      "current_krw": 2142750.0,
+      "current_pct": 10.1,
+      "target_pct": 15,
+      "gap_pct": -4.9,
+      "gap_krw": -1050469,
+      "status": "ok"
+    },
+    {
+      "id": "korea_electric",
+      "label": "한국 전기/전력",
+      "color": "#fbbf24",
+      "current_krw": 1050000.0,
+      "current_pct": 4.9,
+      "target_pct": 12,
+      "gap_pct": -7.1,
+      "gap_krw": -1504575,
+      "status": "under"
+    },
+    {
+      "id": "korea_low_pbr",
+      "label": "한국 저PBR/금융",
+      "color": "#f472b6",
+      "current_krw": 1453500.0,
+      "current_pct": 6.8,
+      "target_pct": 10,
+      "gap_pct": -3.2,
+      "gap_krw": -675313,
+      "status": "ok"
+    },
+    {
+      "id": "korea_defense",
+      "label": "한국 방산",
+      "color": "#a78bfa",
+      "current_krw": 1018000.0,
+      "current_pct": 4.8,
+      "target_pct": 5,
+      "gap_pct": -0.2,
+      "gap_krw": -46406,
+      "status": "ok"
+    },
+    {
+      "id": "korea_index",
+      "label": "KODEX 200 (지수)",
+      "color": "#34d399",
+      "current_krw": 2164760.0,
+      "current_pct": 10.2,
+      "target_pct": 3,
+      "gap_pct": 7.2,
+      "gap_krw": 1526116,
+      "status": "over"
+    },
+    {
+      "id": "commodities",
+      "label": "원자재 (금/구리/우라늄)",
+      "color": "#fb923c",
+      "current_krw": 771940.0,
+      "current_pct": 3.6,
+      "target_pct": 10,
+      "gap_pct": -6.4,
+      "gap_krw": -1356873,
+      "status": "under"
+    },
+    {
+      "id": "cash",
+      "label": "현금 (예금+증권)",
+      "color": "#94a3b8",
+      "current_krw": 7211171,
+      "current_pct": 33.9,
+      "target_pct": 15,
+      "gap_pct": 18.9,
+      "gap_krw": 4017952,
+      "status": "over"
+    },
+    {
+      "id": "pension",
+      "label": "연금 (장기복리)",
+      "color": "#38bdf8",
+      "current_krw": 3566540.0,
+      "current_pct": 16.8,
+      "target_pct": 10,
+      "gap_pct": 6.8,
+      "gap_krw": 1437727,
+      "status": "over"
+    },
+    {
+      "id": "crypto",
+      "label": "크립토 (BTC)",
+      "color": "#f59e0b",
+      "current_krw": 865.8,
+      "current_pct": 0.0,
+      "target_pct": 5,
+      "gap_pct": -5.0,
+      "gap_krw": -1063541,
+      "status": "ok"
+    }
+  ],
+  "fetched_at": "2026-03-02T20:32:52"
+}

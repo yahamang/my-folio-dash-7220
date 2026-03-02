@@ -1,0 +1,1501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>투자 대시보드 2026-03-02 20:32</title>
+<style>
+:root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e2e8f0;
+      --muted:#94a3b8;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;
+      --blue:#60a5fa;--font:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6}
+.wrap{max-width:1400px;margin:0 auto;padding:20px}
+.header{display:flex;justify-content:space-between;align-items:center;
+        margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.header h1{font-size:20px;font-weight:700;color:var(--blue)}
+.header .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.total-val{font-size:28px;font-weight:800;color:var(--blue);text-align:right}
+.total-usd{font-size:13px;color:var(--muted);text-align:right}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px}
+.full{margin-bottom:16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;
+            letter-spacing:.8px;margin-bottom:16px}
+.muted{color:var(--muted)}
+.up{color:var(--green)}.down{color:var(--red)}.neutral{color:var(--muted)}
+.red{color:var(--red)}.blue{color:var(--blue)}
+
+/* 시장 지표 */
+.ind-group{margin-bottom:16px}
+.ind-group-label{font-size:11px;color:var(--muted);font-weight:600;margin-bottom:8px}
+.ind-row{display:flex;flex-wrap:wrap;gap:8px}
+.ind-card{background:var(--bg);border-radius:8px;padding:10px 14px;min-width:120px}
+.ind-label{font-size:11px;color:var(--muted);margin-bottom:2px}
+.ind-value{font-size:16px;font-weight:700}
+.ind-chg{font-size:12px;margin-top:1px}
+
+/* 자산 배분 */
+.alloc-row{margin-bottom:14px}
+.alloc-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:12px}
+.alloc-name{font-weight:600}
+.alloc-pcts{display:flex;align-items:center;gap:6px}
+.bar-wrap{display:flex;align-items:center;gap:10px}
+.bar-bg{position:relative;height:8px;background:var(--border);border-radius:4px;flex:1;min-width:60px}
+.bar-tgt{position:absolute;height:100%;border-radius:4px;opacity:.25;top:0;left:0}
+.bar-cur{position:absolute;height:100%;border-radius:4px;top:0;left:0}
+.bar-gap{font-size:11px;white-space:nowrap}
+
+/* 배지 */
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700}
+.badge-over{background:rgba(248,113,113,.2);color:var(--red)}
+.badge-under{background:rgba(96,165,250,.2);color:var(--blue)}
+.badge-ok{background:rgba(74,222,128,.2);color:var(--green)}
+
+/* 계좌 */
+.acc-block{margin-bottom:18px}
+.acc-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;padding:6px 8px;font-size:10px;color:var(--muted);
+   font-weight:600;border-bottom:1px solid var(--border)}
+td{padding:6px 8px;border-bottom:1px solid var(--border)}
+tr:last-child td{border-bottom:none}
+.tr{text-align:right}
+.cash-summary{border-top:1px solid var(--border);padding-top:10px;margin-top:4px}
+.cash-row{display:flex;justify-content:space-between;font-size:12px;padding:3px 0}
+
+/* 이벤트 */
+.ev-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.ev-row:last-child{border-bottom:none}
+.ev-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0}
+.ev-body{flex:1}
+.ev-head{display:flex;justify-content:space-between;align-items:baseline}
+.ev-title{font-size:13px;font-weight:600}
+.ev-date{font-size:11px}
+.ev-desc{font-size:12px;margin-top:2px}
+.ev-urgent .ev-title{color:var(--red)}
+.ev-soon .ev-title{color:var(--yellow)}
+
+/* 리밸런싱 */
+.rebal-meta{font-size:12px;margin-bottom:12px}
+.rebal-ok{color:var(--green);padding:8px 0;font-size:13px}
+.rebal-row{display:flex;justify-content:space-between;align-items:center;
+           padding:10px 0;border-bottom:1px solid var(--border)}
+.rebal-row:last-of-type{border-bottom:none}
+.rebal-name{font-size:13px;font-weight:600}
+.rebal-action{font-size:11px;margin-top:2px}
+.rebal-right{text-align:right}
+.rebal-rules{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.rebal-rule{font-size:12px;padding:2px 0}
+
+/* 관심종목 */
+.wl-group{margin-bottom:18px}
+.wl-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px}
+.wl-row{display:flex;justify-content:space-between;align-items:center;
+        padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
+.wl-row:last-child{border-bottom:none}
+.wl-name{font-weight:600;margin-right:6px}
+.wl-note{font-size:11px}
+.wl-right{text-align:right;white-space:nowrap}
+
+/* 데이터 출처 */
+.data-source{font-size:10px;color:var(--muted);margin-top:12px;padding-top:8px;
+             border-top:1px solid var(--border);text-align:right;letter-spacing:.2px}
+
+/* 수익성 요약 */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
+.summary-item{background:var(--bg);border-radius:8px;padding:10px 14px}
+.summary-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.summary-value{font-size:18px;font-weight:700}
+.summary-sub{font-size:11px;margin-top:2px}
+.summary-divider{border-top:1px solid var(--border);margin:12px 0}
+.acc-pnl-row{display:flex;justify-content:space-between;align-items:center;
+             padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.acc-pnl-row:last-child{border-bottom:none}
+
+/* 리스크 지표 */
+.risk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
+.risk-item{background:var(--bg);border-radius:8px;padding:10px 14px}
+.risk-label{font-size:11px;color:var(--muted);margin-bottom:3px}
+.risk-value{font-size:16px;font-weight:700}
+.risk-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.risk-warn{color:var(--yellow)}
+.risk-danger{color:var(--red)}
+.risk-ok{color:var(--green)}
+
+/* 배당 예측 */
+.div-total{font-size:14px;font-weight:700;margin-bottom:10px}
+.div-row{display:flex;justify-content:space-between;align-items:center;
+         padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+.div-row:last-child{border-bottom:none}
+
+/* 매수 계획 */
+.buy-phase{margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.buy-phase:last-child{border-bottom:none}
+.buy-phase-label{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--blue)}
+.buy-row{display:flex;justify-content:space-between;align-items:center;
+         padding:6px 0;border-bottom:1px solid var(--border);font-size:12px}
+.buy-row:last-child{border-bottom:none}
+.buy-left{display:flex;align-items:center;gap:8px}
+.buy-name{font-weight:600}
+.buy-right{display:flex;align-items:center;gap:4px;text-align:right}
+.buy-note{font-size:11px;padding-left:8px;margin-top:2px;color:var(--muted)}
+.buy-status-pending{display:inline-block;padding:2px 8px;border-radius:10px;
+                    font-size:10px;font-weight:700;background:rgba(251,191,36,.2);color:var(--yellow)}
+.buy-status-waiting{display:inline-block;padding:2px 8px;border-radius:10px;
+                    font-size:10px;font-weight:700;background:rgba(148,163,184,.2);color:var(--muted)}
+.buy-status-done{display:inline-block;padding:2px 8px;border-radius:10px;
+                 font-size:10px;font-weight:700;background:rgba(74,222,128,.2);color:var(--green)}
+
+/* 전략 추천 */
+.strategy-component{margin-bottom:24px;padding-bottom:24px;
+  border-bottom:1px solid var(--border)}
+.strategy-component:last-child{border-bottom:none}
+.strategy-comp-title{font-size:13px;font-weight:700;color:var(--blue);
+  margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.strategy-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.strategy-metric{background:var(--bg);border-radius:8px;padding:10px 12px;
+  display:flex;flex-direction:column;gap:4px}
+.strategy-metric>span:nth-child(2){font-size:15px;font-weight:700}
+
+.strategy-urgency{display:grid;grid-template-columns:200px 1fr;gap:16px}
+.urgency-badge{background:var(--bg);border-radius:8px;padding:16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.priority-actions{display:flex;flex-direction:column;gap:8px}
+.rebal-priority-row{display:grid;grid-template-columns:60px 1fr 150px 1fr;
+  gap:10px;align-items:center;padding:10px 12px;background:var(--bg);
+  border-radius:8px;font-size:12px}
+
+.strategy-action .action-box{padding:16px;border-radius:10px;margin-bottom:16px}
+.strategy-action .action-box.green{background:rgba(74,222,128,.1);border:1px solid var(--green)}
+.strategy-action .action-box.red{background:rgba(248,113,113,.1);border:1px solid var(--red)}
+.strategy-action .action-box.blue{background:rgba(96,165,250,.1);border:1px solid var(--blue)}
+.action-main{font-size:18px;font-weight:700;margin-bottom:10px}
+.action-rationale{font-size:13px;line-height:1.8;color:var(--muted)}
+.action-metrics{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.action-section{background:var(--bg);border-radius:8px;padding:12px;font-size:12px;
+  line-height:1.7}
+.action-section-title{font-weight:700;margin-bottom:8px;color:var(--blue)}
+
+/* Refresh Button */
+.header-right{display:flex;align-items:center;gap:20px}
+.refresh-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;
+  background:var(--card);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;font-family:var(--font)}
+.refresh-btn:hover{background:var(--border);border-color:var(--blue)}
+.refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+.refresh-btn svg{transition:transform .5s}
+.refresh-btn.spinning svg{animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:900px){
+  .grid2,.grid3{grid-template-columns:1fr}
+  .strategy-grid{grid-template-columns:1fr 1fr}
+  .strategy-urgency{grid-template-columns:1fr}
+  .action-metrics{grid-template-columns:1fr}
+}
+
+@media(max-width:480px){
+  .wrap{padding:10px 8px}
+  .card{padding:14px 12px;border-radius:10px}
+  .header{flex-direction:column;align-items:flex-start;gap:6px}
+  .header-right{flex-direction:column-reverse;align-items:flex-start;gap:10px}
+  .refresh-btn{padding:6px 12px;font-size:11px}
+  .total-val{font-size:22px;text-align:left}
+  .total-usd{text-align:left}
+  .header .sub{font-size:11px}
+  .ind-card{min-width:90px;padding:8px 10px}
+  .ind-value{font-size:14px}
+  .bar-wrap{gap:6px}
+  .bar-gap{font-size:10px}
+  .alloc-meta{flex-wrap:wrap;gap:2px}
+  .acc-block>table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+  .ev-desc{font-size:11px}
+  .rebal-rules{display:none}
+  .summary-grid{grid-template-columns:1fr 1fr}
+  .risk-grid{grid-template-columns:1fr 1fr}
+  .summary-value{font-size:15px}
+  .risk-value{font-size:14px}
+  .strategy-grid{grid-template-columns:1fr}
+  .rebal-priority-row{grid-template-columns:1fr;gap:6px}
+  .action-main{font-size:16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 헤더 -->
+  <div class="header">
+    <div>
+      <h1>📊 투자 대시보드</h1>
+      <div class="sub">업데이트: 2026-03-02 20:32 &nbsp;|&nbsp; 환율: ₩1,443/USD</div>
+    </div>
+    <div class="header-right">
+      <button id="refreshBtn" class="refresh-btn" onclick="triggerRefresh()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+        </svg>
+        <span id="refreshText">새로고침</span>
+      </button>
+      <div>
+        <div class="total-val">₩21,288,127</div>
+        <div class="total-usd">≈ $14,753 USD</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="color:var(--yellow);font-size:12px;margin-bottom:12px">⚠ 조회 실패: yfinance: Yahoo API requires curl_cffi session not <class 'requests.sessions.Session'>. Solution: stop setting session, let YF handle.</div>
+
+  <!-- 수익성 요약 -->
+  <div class="full">
+    <div class="card">
+      <div class="card-title">포트폴리오 수익성 요약</div>
+      
+    <div class="summary-grid">
+      <div class="summary-item">
+        <div class="summary-label">총 평가액</div>
+        <div class="summary-value blue">₩21,288,127</div>
+        <div class="summary-sub muted">≈ $14,753</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">총 매입금액</div>
+        <div class="summary-value">₩11,574,768</div>
+        <div class="summary-sub muted">주식 계좌 합산</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">총 수익률</div>
+        <div class="summary-value"><span class="up">+21.6%</span></div>
+        <div class="summary-sub"><span class="up">+₩2,501,322</span></div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">연간 배당 예측</div>
+        <div class="summary-value green">₩289,110</div>
+        <div class="summary-sub muted">월 ≈ ₩24,092 · 2.5%</div>
+      </div>
+    </div>
+<div class="summary-divider"></div>
+
+    <div class="acc-pnl-row">
+      <span>연금계좌</span>
+      <span>₩3,566,540 &nbsp; <span class="up">+26.6%</span> <span class="muted" style="font-size:11px">(+₩748,970)</span></span>
+    </div>
+
+    <div class="acc-pnl-row">
+      <span>ISA계좌</span>
+      <span>₩10,509,550 &nbsp; <span class="up">+20.0%</span> <span class="muted" style="font-size:11px">(+₩1,752,352)</span></span>
+    </div>
+
+    <div class="acc-pnl-row">
+      <span>해외주식계좌</span>
+      <span>₩0 &nbsp; <span class="muted">—</span></span>
+    </div>
+    </div>
+  </div>
+
+  <!-- 리스크 지표 -->
+  <div class="full">
+    <div class="card">
+      <div class="card-title">리스크 지표</div>
+      
+    <div class="risk-grid">
+      <div class="risk-item">
+        <div class="risk-label">VIX (시장 공포)</div>
+        <div class="risk-value risk-ok">—</div>
+        <div class="risk-sub">안정 구간</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">현금 비율</div>
+        <div class="risk-value risk-ok">33.9%</div>
+        <div class="risk-sub">양호</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">USD 노출 비중</div>
+        <div class="risk-value risk-ok">0.0%</div>
+        <div class="risk-sub">낮은 달러 노출</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">최대 자산군 비중</div>
+        <div class="risk-value risk-warn">33.9%</div>
+        <div class="risk-sub">현금 (예금+증권)</div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- 전략 추천 -->
+  <div class="full">
+    <div class="card">
+      <div class="card-title">💡 전략 추천 (Strategy Recommendations)</div>
+      
+    <div class="strategy-component">
+      <div class="strategy-comp-title">1. 시장 모멘텀 분석</div>
+      <div class="strategy-grid">
+        <div class="strategy-metric">
+          <span class="muted">한국 지수</span>
+          <span class="neutral">혼조</span>
+          <span class="muted" style="font-size:10px">
+            KOSPI +0.00% · KOSDAQ +0.00%
+          </span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">VIX 공포지수</span>
+          <span class="up">안정 (낙관)</span>
+          <span class="muted" style="font-size:10px">0.0</span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">외국인/기관</span>
+          <span class="muted">데이터 없음</span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">종합 판단</span>
+          <span class="muted" style="font-weight:700">매수 선호</span>
+          <span class="muted" style="font-size:10px">점수: +1/3</span>
+        </div>
+      </div>
+    </div>
+    <div class="strategy-component">
+      <div class="strategy-comp-title">2. Phase 2/3 실행 신호</div>
+      <div class="strategy-grid">
+        <div class="strategy-metric">
+          <span class="muted">1%+ 조정 발생</span>
+          <span class="muted" style="font-weight:700">
+            ✗ 미발생
+          </span>
+          <span class="muted" style="font-size:10px">
+            Phase 2 대기
+          </span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">FOMC 근접도</span>
+          <span class="muted" style="font-weight:700">
+            D-16
+          </span>
+          <span class="muted" style="font-size:10px">
+            2026-03-18
+          </span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">매수 타이밍</span>
+          <span class="blue" style="font-weight:700">보통</span>
+          <span class="muted" style="font-size:10px">5/10점</span>
+        </div>
+        <div class="strategy-metric">
+          <span class="muted">실행 단계</span>
+          <span class="muted" style="font-weight:700">
+            Phase 1 대기
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="strategy-component">
+      <div class="strategy-comp-title">3. 리밸런싱 긴급도</div>
+      <div class="strategy-urgency">
+        <div class="urgency-badge">
+          <span class="muted">긴급도</span>
+          <span class="yellow" style="font-size:18px;font-weight:700">높음</span>
+          <span class="muted" style="font-size:10px">5/10점 · 이탈 6개</span>
+        </div>
+        <div class="priority-actions">
+          
+        <div class="rebal-priority-row">
+          <span class="badge badge-over">초과</span>
+          <span>현금 (예금+증권)</span>
+          <span class="red">+18.9%p (₩4,017,952)</span>
+          <span class="muted" style="font-size:11px">매도 또는 추가 매수 중단</span>
+        </div>
+        <div class="rebal-priority-row">
+          <span class="badge badge-under">부족</span>
+          <span>한국 전기/전력</span>
+          <span class="blue">-7.1%p (₩1,504,575)</span>
+          <span class="muted" style="font-size:11px">추가 매수 우선</span>
+        </div>
+        </div>
+      </div>
+    </div>
+    <div class="strategy-component strategy-action">
+      <div class="strategy-comp-title">4. 오늘의 액션 플랜</div>
+      <div class="action-box red">
+        <div class="action-main">부분 매도 검토</div>
+        <div class="action-rationale">
+          • 초과 자산군: 현금 (예금+증권) (+18.9%p)<br>• 목표 비중으로 복귀 필요
+        </div>
+      </div>
+      <div class="action-metrics">
+        <div class="action-section">
+          <div class="action-section-title">주목할 지표</div>
+          • 추가 상승 시 매도 타이밍
+        </div>
+        <div class="action-section">
+          <div class="action-section-title">7일 내 이벤트</div>
+          • 없음
+        </div>
+      </div>
+    </div>
+    </div>
+  </div>
+
+  <!-- 시장 지표 -->
+  <div class="full">
+    <div class="card">
+      <div class="card-title">핵심 시장 지표</div>
+      <div class="ind-group"><div class="ind-group-label">한국 지수</div><div class="ind-row">
+
+            <div class="ind-card">
+              <div class="ind-label">KOSPI</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+
+            <div class="ind-card">
+              <div class="ind-label">KOSDAQ</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+
+            <div class="ind-card">
+              <div class="ind-label">S&P500</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+
+            <div class="ind-card">
+              <div class="ind-label">NASDAQ</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+</div></div>
+<div class="ind-group"><div class="ind-group-label">매크로</div><div class="ind-row">
+
+            <div class="ind-card">
+              <div class="ind-label">VIX (공포지수)</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+
+            <div class="ind-card">
+              <div class="ind-label">USD/KRW 환율</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+
+            <div class="ind-card">
+              <div class="ind-label">미국 10년 금리</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+</div></div>
+<div class="ind-group"><div class="ind-group-label">원자재</div><div class="ind-row">
+
+            <div class="ind-card">
+              <div class="ind-label">금 ($/oz)</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+
+            <div class="ind-card">
+              <div class="ind-label">구리 ($/lb)</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+
+            <div class="ind-card">
+              <div class="ind-label">우라늄 ETF</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+</div></div>
+<div class="ind-group"><div class="ind-group-label">크립토</div><div class="ind-row">
+
+            <div class="ind-card">
+              <div class="ind-label">BTC (USD)</div>
+              <div class="ind-value">—</div>
+              <div class="ind-chg neutral"></div>
+            </div>
+</div></div>
+      <div class="data-source">출처: Yahoo Finance &nbsp;|&nbsp; 조회: 2026-03-02 20:32</div>
+    </div>
+  </div>
+
+  <!-- 자산 배분 + 계좌 현황 -->
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">자산군별 배분 현황</div>
+      
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">글로벌 성장 (나스닥/S&P)</span>
+            <span class="alloc-pcts">
+              <b>9.0%</b> <span class="muted">/ 목표 15%</span>
+              <span class="badge badge-under">부족</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:30%;background:#60a5fa"></div>
+              <div class="bar-cur" style="width:18.0%;background:#60a5fa"></div>
+            </div>
+            <span class="bar-gap blue">
+              -6.0%p &nbsp; ₩1,284,619 부족
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">글로벌 배당 (SCHD/다우존스)</span>
+            <span class="alloc-pcts">
+              <b>10.1%</b> <span class="muted">/ 목표 15%</span>
+              <span class="badge badge-ok">정상</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:30%;background:#4ade80"></div>
+              <div class="bar-cur" style="width:20.2%;background:#4ade80"></div>
+            </div>
+            <span class="bar-gap muted">
+              -4.9%p &nbsp; ₩1,050,469 부족
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">한국 전기/전력</span>
+            <span class="alloc-pcts">
+              <b>4.9%</b> <span class="muted">/ 목표 12%</span>
+              <span class="badge badge-under">부족</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:24%;background:#fbbf24"></div>
+              <div class="bar-cur" style="width:9.8%;background:#fbbf24"></div>
+            </div>
+            <span class="bar-gap blue">
+              -7.1%p &nbsp; ₩1,504,575 부족
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">한국 저PBR/금융</span>
+            <span class="alloc-pcts">
+              <b>6.8%</b> <span class="muted">/ 목표 10%</span>
+              <span class="badge badge-ok">정상</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:20%;background:#f472b6"></div>
+              <div class="bar-cur" style="width:13.6%;background:#f472b6"></div>
+            </div>
+            <span class="bar-gap muted">
+              -3.2%p &nbsp; ₩675,313 부족
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">한국 방산</span>
+            <span class="alloc-pcts">
+              <b>4.8%</b> <span class="muted">/ 목표 5%</span>
+              <span class="badge badge-ok">정상</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:10%;background:#a78bfa"></div>
+              <div class="bar-cur" style="width:9.6%;background:#a78bfa"></div>
+            </div>
+            <span class="bar-gap muted">
+              -0.2%p &nbsp; ₩46,406 부족
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">KODEX 200 (지수)</span>
+            <span class="alloc-pcts">
+              <b>10.2%</b> <span class="muted">/ 목표 3%</span>
+              <span class="badge badge-over">초과</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:6%;background:#34d399"></div>
+              <div class="bar-cur" style="width:20.4%;background:#34d399"></div>
+            </div>
+            <span class="bar-gap red">
+              +7.2%p &nbsp; ₩1,526,116 초과
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">원자재 (금/구리/우라늄)</span>
+            <span class="alloc-pcts">
+              <b>3.6%</b> <span class="muted">/ 목표 10%</span>
+              <span class="badge badge-under">부족</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:20%;background:#fb923c"></div>
+              <div class="bar-cur" style="width:7.2%;background:#fb923c"></div>
+            </div>
+            <span class="bar-gap blue">
+              -6.4%p &nbsp; ₩1,356,873 부족
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">현금 (예금+증권)</span>
+            <span class="alloc-pcts">
+              <b>33.9%</b> <span class="muted">/ 목표 15%</span>
+              <span class="badge badge-over">초과</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:30%;background:#94a3b8"></div>
+              <div class="bar-cur" style="width:67.8%;background:#94a3b8"></div>
+            </div>
+            <span class="bar-gap red">
+              +18.9%p &nbsp; ₩4,017,952 초과
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">연금 (장기복리)</span>
+            <span class="alloc-pcts">
+              <b>16.8%</b> <span class="muted">/ 목표 10%</span>
+              <span class="badge badge-over">초과</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:20%;background:#38bdf8"></div>
+              <div class="bar-cur" style="width:33.6%;background:#38bdf8"></div>
+            </div>
+            <span class="bar-gap red">
+              +6.8%p &nbsp; ₩1,437,727 초과
+            </span>
+          </div>
+        </div>
+
+        <div class="alloc-row">
+          <div class="alloc-meta">
+            <span class="alloc-name">크립토 (BTC)</span>
+            <span class="alloc-pcts">
+              <b>0.0%</b> <span class="muted">/ 목표 5%</span>
+              <span class="badge badge-ok">정상</span>
+            </span>
+          </div>
+          <div class="bar-wrap">
+            <div class="bar-bg">
+              <div class="bar-tgt" style="width:10%;background:#f59e0b"></div>
+              <div class="bar-cur" style="width:0.0%;background:#f59e0b"></div>
+            </div>
+            <span class="bar-gap muted">
+              -5.0%p &nbsp; ₩1,063,541 부족
+            </span>
+          </div>
+        </div>
+      <div class="data-source">종목가: Yahoo Finance · 크립토: Binance API · 20:32</div>
+    </div>
+    <div class="card">
+      <div class="card-title">계좌별 보유 현황</div>
+      
+        <div class="acc-block">
+          <div class="acc-title">연금계좌 <span class="muted">₩3,566,540</span></div>
+          <table>
+            <thead><tr>
+              <th>종목</th><th class="tr">현재가</th>
+              <th class="tr">등락</th><th class="tr">평가금액</th>
+              <th class="tr">수익률</th>
+            </tr></thead><tbody>
+
+              <tr>
+                <td>TIGER 나스닥100 <span class="muted">(5주)</span></td>
+                <td class="tr">₩159,050</td>
+                <td class="tr down">-0.35%</td>
+                <td class="tr">₩795,250</td>
+                <td class="tr"><span class="up">+44.0%</span><br><span class="muted" style="font-size:10px">+₩243,000</span></td>
+              </tr>
+
+              <tr>
+                <td>TIGER 미국배당다우존스 <span class="muted">(194주)</span></td>
+                <td class="tr">₩14,285</td>
+                <td class="tr up">+0.28%</td>
+                <td class="tr">₩2,771,290</td>
+                <td class="tr"><span class="up">+22.3%</span><br><span class="muted" style="font-size:10px">+₩505,970</span></td>
+              </tr>
+</tbody></table></div>
+
+        <div class="acc-block">
+          <div class="acc-title">ISA계좌 <span class="muted">₩10,509,550</span></div>
+          <table>
+            <thead><tr>
+              <th>종목</th><th class="tr">현재가</th>
+              <th class="tr">등락</th><th class="tr">평가금액</th>
+              <th class="tr">수익률</th>
+            </tr></thead><tbody>
+
+              <tr>
+                <td>KODEX 200 <span class="muted">(23주)</span></td>
+                <td class="tr">₩94,120</td>
+                <td class="tr down">-0.95%</td>
+                <td class="tr">₩2,164,760</td>
+                <td class="tr"><span class="up">+65.9%</span><br><span class="muted" style="font-size:10px">+₩859,970</span></td>
+              </tr>
+
+              <tr>
+                <td>TIGER 나스닥100 <span class="muted">(12주)</span></td>
+                <td class="tr">₩159,050</td>
+                <td class="tr down">-0.35%</td>
+                <td class="tr">₩1,908,600</td>
+                <td class="tr"><span class="up">+25.0%</span><br><span class="muted" style="font-size:10px">+₩381,977</span></td>
+              </tr>
+
+              <tr>
+                <td>TIGER 미국배당다우존스 <span class="muted">(150주)</span></td>
+                <td class="tr">₩14,285</td>
+                <td class="tr up">+0.28%</td>
+                <td class="tr">₩2,142,750</td>
+                <td class="tr"><span class="up">+20.2%</span><br><span class="muted" style="font-size:10px">+₩360,285</span></td>
+              </tr>
+
+              <tr>
+                <td>신한지주 <span class="muted">(15주)</span></td>
+                <td class="tr">₩96,900</td>
+                <td class="tr down">-3.00%</td>
+                <td class="tr">₩1,453,500</td>
+                <td class="tr"><span class="down">-3.8%</span><br><span class="muted" style="font-size:10px">₩-57,000</span></td>
+              </tr>
+
+              <tr>
+                <td>HD현대일렉트릭 <span class="muted">(1주)</span></td>
+                <td class="tr">₩1,050,000</td>
+                <td class="tr down">-5.49%</td>
+                <td class="tr">₩1,050,000</td>
+                <td class="tr"><span class="up">+8.6%</span><br><span class="muted" style="font-size:10px">+₩83,000</span></td>
+              </tr>
+
+              <tr>
+                <td>LIG넥스원 <span class="muted">(2주)</span></td>
+                <td class="tr">₩509,000</td>
+                <td class="tr up">+1.19%</td>
+                <td class="tr">₩1,018,000</td>
+                <td class="tr"><span class="up">+10.3%</span><br><span class="muted" style="font-size:10px">+₩95,000</span></td>
+              </tr>
+
+              <tr>
+                <td>KODEX 골드선물 <span class="muted">(26주)</span></td>
+                <td class="tr">₩29,690</td>
+                <td class="tr down">-0.02%</td>
+                <td class="tr">₩771,940</td>
+                <td class="tr"><span class="up">+3.9%</span><br><span class="muted" style="font-size:10px">+₩29,120</span></td>
+              </tr>
+</tbody></table></div>
+
+        <div class="acc-block">
+          <div class="acc-title">해외주식계좌 <span class="muted">₩0</span></div>
+          <table>
+            <thead><tr>
+              <th>종목</th><th class="tr">현재가</th>
+              <th class="tr">등락</th><th class="tr">평가금액</th>
+              <th class="tr">수익률</th>
+            </tr></thead><tbody>
+
+              <tr>
+                <td>SCHD <span class="muted">(40주)</span></td>
+                <td class="tr">—</td>
+                <td class="tr neutral">+0.00%</td>
+                <td class="tr">—</td>
+                <td class="tr"><span class="muted" style="font-size:10px">평단가 미입력</span></td>
+              </tr>
+
+              <tr>
+                <td>VOO <span class="muted">(7주)</span></td>
+                <td class="tr">—</td>
+                <td class="tr neutral">+0.00%</td>
+                <td class="tr">—</td>
+                <td class="tr"><span class="muted" style="font-size:10px">평단가 미입력</span></td>
+              </tr>
+</tbody></table></div>
+
+    <div class="cash-summary">
+      <div class="cash-row"><span class="muted">현금 (증권+예금)</span><span>₩7,211,171</span></div>
+      <div class="cash-row">
+        <span class="muted">크립토 (바이낸스) <span style="font-size:10px">· Binance API · 20:32</span></span>
+        <span>₩866</span>
+      </div>
+    </div>
+      <div class="data-source">주식: Yahoo Finance &nbsp;|&nbsp; 크립토: Binance API · 20:32</div>
+    </div>
+  </div>
+
+  <!-- 리밸런싱 + 이벤트 -->
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">리밸런싱 가이드</div>
+      
+    <div class="rebal-meta muted">
+      기준: ±5%p 이탈 검토 &nbsp;|&nbsp; 다음 정기 리뷰: 2026-04-01
+    </div>
+
+            <div class="rebal-row">
+              <div>
+                <div class="rebal-name">현금 (예금+증권)</div>
+                <div class="rebal-action muted">매도 또는 비중 축소 검토</div>
+              </div>
+              <div class="rebal-right">
+                <span class="badge badge-over">초과</span>
+                <div class="red" style="font-size:12px;margin-top:4px">
+                  33.9% → 15%
+                  (+18.9%p)
+                </div>
+              </div>
+            </div>
+
+            <div class="rebal-row">
+              <div>
+                <div class="rebal-name">KODEX 200 (지수)</div>
+                <div class="rebal-action muted">매도 또는 비중 축소 검토</div>
+              </div>
+              <div class="rebal-right">
+                <span class="badge badge-over">초과</span>
+                <div class="red" style="font-size:12px;margin-top:4px">
+                  10.2% → 3%
+                  (+7.2%p)
+                </div>
+              </div>
+            </div>
+
+            <div class="rebal-row">
+              <div>
+                <div class="rebal-name">한국 전기/전력</div>
+                <div class="rebal-action muted">추가 매수 우선 고려</div>
+              </div>
+              <div class="rebal-right">
+                <span class="badge badge-under">부족</span>
+                <div class="blue" style="font-size:12px;margin-top:4px">
+                  4.9% → 12%
+                  (-7.1%p)
+                </div>
+              </div>
+            </div>
+
+            <div class="rebal-row">
+              <div>
+                <div class="rebal-name">연금 (장기복리)</div>
+                <div class="rebal-action muted">매도 또는 비중 축소 검토</div>
+              </div>
+              <div class="rebal-right">
+                <span class="badge badge-over">초과</span>
+                <div class="red" style="font-size:12px;margin-top:4px">
+                  16.8% → 10%
+                  (+6.8%p)
+                </div>
+              </div>
+            </div>
+
+            <div class="rebal-row">
+              <div>
+                <div class="rebal-name">원자재 (금/구리/우라늄)</div>
+                <div class="rebal-action muted">추가 매수 우선 고려</div>
+              </div>
+              <div class="rebal-right">
+                <span class="badge badge-under">부족</span>
+                <div class="blue" style="font-size:12px;margin-top:4px">
+                  3.6% → 10%
+                  (-6.4%p)
+                </div>
+              </div>
+            </div>
+
+            <div class="rebal-row">
+              <div>
+                <div class="rebal-name">글로벌 성장 (나스닥/S&P)</div>
+                <div class="rebal-action muted">추가 매수 우선 고려</div>
+              </div>
+              <div class="rebal-right">
+                <span class="badge badge-under">부족</span>
+                <div class="blue" style="font-size:12px;margin-top:4px">
+                  9.0% → 15%
+                  (-6.0%p)
+                </div>
+              </div>
+            </div>
+<div class="rebal-rules">
+<div class="rebal-rule muted">• 자산군 비중이 목표 ±5%p 이탈 시 리밸런싱 검토</div>
+<div class="rebal-rule muted">• 신규 자금 유입 시 비중 부족 자산군 우선 매수 (매도 최소화)</div>
+<div class="rebal-rule muted">• ISA/연금 계좌 내 거래 우선 (세금 효율)</div>
+<div class="rebal-rule muted">• 예금 만기(2026-03-20) 500만원: 전기/원자재/저PBR 3~4회 분할 매수</div>
+<div class="rebal-rule muted">• 환율 1,400원 이하 시 달러 자산 추가 매수 검토</div>
+</div>
+    </div>
+    <div class="card">
+      <div class="card-title">이벤트 캘린더</div>
+      
+        <div class="ev-row ev-urgent">
+          <div class="ev-dot" style="background:#60a5fa"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">FOMC 회의</span>
+              <span class="ev-date muted">2026-03-18 <b>(D-16)</b></span>
+            </div>
+            <div class="ev-desc muted">금리 결정 및 점도표 발표. 동결 예상이나 성명 변화 주목</div>
+          </div>
+        </div>
+
+        <div class="ev-row ev-urgent">
+          <div class="ev-dot" style="background:#4ade80"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">예금 만기 (500만원)</span>
+              <span class="ev-date muted">2026-03-20 <b>(D-18)</b></span>
+            </div>
+            <div class="ev-desc muted">재원 배치: 한국 전기/전력 → 원자재 → 저PBR 순으로 분할 매수 검토</div>
+          </div>
+        </div>
+
+        <div class="ev-row ev-urgent">
+          <div class="ev-dot" style="background:#4ade80"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">Q1 분기 리밸런싱 리뷰</span>
+              <span class="ev-date muted">2026-04-01 <b>(D-30)</b></span>
+            </div>
+            <div class="ev-desc muted">/dashboard 실행 → 이탈 항목 확인 → 리밸런싱 계획 수립</div>
+          </div>
+        </div>
+
+        <div class="ev-row ">
+          <div class="ev-dot" style="background:#60a5fa"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">FOMC 회의</span>
+              <span class="ev-date muted">2026-06-17 <b>(D-107)</b></span>
+            </div>
+            <div class="ev-desc muted">6월 FOMC. 금리 인하 여부 주목</div>
+          </div>
+        </div>
+
+        <div class="ev-row ">
+          <div class="ev-dot" style="background:#4ade80"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">Q2 분기 리밸런싱 리뷰</span>
+              <span class="ev-date muted">2026-07-01 <b>(D-121)</b></span>
+            </div>
+            <div class="ev-desc muted">/dashboard 실행 → 이탈 항목 확인</div>
+          </div>
+        </div>
+
+        <div class="ev-row ">
+          <div class="ev-dot" style="background:#fbbf24"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">상법 2차 개정 시행</span>
+              <span class="ev-date muted">2026-09-10 <b>(D-192)</b></span>
+            </div>
+            <div class="ev-desc muted">집중투표제 의무화, 감사위원 분리선임 확대 시행. 금융지주 배당 확대 모멘텀 확인</div>
+          </div>
+        </div>
+
+        <div class="ev-row ">
+          <div class="ev-dot" style="background:#60a5fa"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">FOMC 회의</span>
+              <span class="ev-date muted">2026-09-16 <b>(D-198)</b></span>
+            </div>
+            <div class="ev-desc muted">9월 FOMC</div>
+          </div>
+        </div>
+
+        <div class="ev-row ">
+          <div class="ev-dot" style="background:#4ade80"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">Q3 분기 리밸런싱 리뷰</span>
+              <span class="ev-date muted">2026-10-01 <b>(D-213)</b></span>
+            </div>
+            <div class="ev-desc muted">/dashboard 실행 → 이탈 항목 확인</div>
+          </div>
+        </div>
+
+        <div class="ev-row ">
+          <div class="ev-dot" style="background:#60a5fa"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">FOMC 회의</span>
+              <span class="ev-date muted">2026-12-16 <b>(D-289)</b></span>
+            </div>
+            <div class="ev-desc muted">12월 FOMC. 연간 통화정책 방향 결산</div>
+          </div>
+        </div>
+
+        <div class="ev-row ">
+          <div class="ev-dot" style="background:#4ade80"></div>
+          <div class="ev-body">
+            <div class="ev-head">
+              <span class="ev-title">Q4 분기 리밸런싱 리뷰 + 연간 결산</span>
+              <span class="ev-date muted">2027-01-01 <b>(D-305)</b></span>
+            </div>
+            <div class="ev-desc muted">연간 성과 평가 및 내년 목표 배분 재검토</div>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- 배당 예측 + 관심종목 -->
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">배당 수익 예측 (연간)</div>
+      <div class="div-total green">연간 예측 배당: ₩289,110 &nbsp;<span class="muted" style="font-size:12px">/ 월 ≈ ₩24,092</span></div>
+
+    <div class="div-row">
+      <span>TIGER 미국배당다우존스 <span class="muted">(3.0%)</span></span>
+      <span class="green">₩83,139/년</span>
+    </div>
+
+    <div class="div-row">
+      <span>신한지주 <span class="muted">(4.8%)</span></span>
+      <span class="green">₩69,768/년</span>
+    </div>
+
+    <div class="div-row">
+      <span>TIGER 미국배당다우존스 <span class="muted">(3.0%)</span></span>
+      <span class="green">₩64,282/년</span>
+    </div>
+
+    <div class="div-row">
+      <span>KODEX 200 <span class="muted">(1.5%)</span></span>
+      <span class="green">₩32,471/년</span>
+    </div>
+
+    <div class="div-row">
+      <span>HD현대일렉트릭 <span class="muted">(1.5%)</span></span>
+      <span class="green">₩15,750/년</span>
+    </div>
+
+    <div class="div-row">
+      <span>LIG넥스원 <span class="muted">(1.0%)</span></span>
+      <span class="green">₩10,180/년</span>
+    </div>
+
+    <div class="div-row">
+      <span>TIGER 나스닥100 <span class="muted">(0.5%)</span></span>
+      <span class="green">₩9,543/년</span>
+    </div>
+
+    <div class="div-row">
+      <span>TIGER 나스닥100 <span class="muted">(0.5%)</span></span>
+      <span class="green">₩3,976/년</span>
+    </div>
+    </div>
+    <div class="card">
+      <div class="card-title">관심 종목 (미편입 watchlist)</div>
+      <div class="wl-group"><div class="wl-label">전기/전력 인프라</div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">HD현대일렉트릭</span>
+                <span class="wl-note muted">변압기/전력기기, 미주 수출</span></div>
+              <div class="wl-right">
+                <span>₩1,050,000</span>
+                <span class="down" style="margin-left:8px">-5.49%</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">LS ELECTRIC</span>
+                <span class="wl-note muted">배전·자동화, 수주잔고 확인</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">효성중공업</span>
+                <span class="wl-note muted">초고압변압기, 미주 수출 비중</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">LS (지주)</span>
+                <span class="wl-note muted">전선·구리, PBR 저평가</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">두산에너빌리티</span>
+                <span class="wl-note muted">원전·SMR, 수주 모멘텀</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+</div>
+<div class="wl-group"><div class="wl-label">저PBR/금융 (정책 수혜)</div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">신한지주</span>
+                <span class="wl-note muted">ROE 개선, 배당 확대</span></div>
+              <div class="wl-right">
+                <span>₩96,900</span>
+                <span class="down" style="margin-left:8px">-3.00%</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">KB금융</span>
+                <span class="wl-note muted">자사주 소각 정책</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">하나금융지주</span>
+                <span class="wl-note muted">밸류업 선도, PBR 0.5</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">메리츠금융지주</span>
+                <span class="wl-note muted">공격적 자본정책</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">삼성물산</span>
+                <span class="wl-note muted">지주 할인 해소 모멘텀</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+</div>
+<div class="wl-group"><div class="wl-label">방산</div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">한화에어로스페이스</span>
+                <span class="wl-note muted">K9자주포, 폴란드·루마니아</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">한국항공우주(KAI)</span>
+                <span class="wl-note muted">FA-50, 말레이·폴란드</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">현대로템</span>
+                <span class="wl-note muted">K2전차, 폴란드 2차 계약</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">LIG넥스원</span>
+                <span class="wl-note muted">유도무기, 중동 수출</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+</div>
+<div class="wl-group"><div class="wl-label">원자재</div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">금 선물</span>
+                <span class="wl-note muted">달러헷지, 중앙은행 매입</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">구리 선물</span>
+                <span class="wl-note muted">AI인프라·전기화 수요</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+
+            <div class="wl-row">
+              <div><span class="wl-name">우라늄 ETF (URA)</span>
+                <span class="wl-note muted">원전 르네상스, SMR</span></div>
+              <div class="wl-right">
+                <span>—</span>
+                <span class="neutral" style="margin-left:8px">—</span>
+              </div>
+            </div>
+</div>
+      <div class="data-source">출처: Yahoo Finance &nbsp;|&nbsp; 조회: 2026-03-02 20:32</div>
+    </div>
+  </div>
+
+  <!-- 매수 계획 -->
+  <div class="full">
+    <div class="card">
+      <div class="card-title">📋 매수 계획 (3단계 분할 매수)</div>
+      <div class="buy-phase">
+<div class="buy-phase-label">Phase 1 (오늘-2일)
+</div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">신한지주</span>
+                <span class="muted" style="font-size:11px"> × 15주</span>
+                <span class="buy-status-done">완료</span>
+              </div>
+              <div class="buy-right">
+                <span>₩96,900</span>
+                <span class="down" style="margin-left:6px">-3.00%</span>
+                <span class="muted" style="margin-left:8px">₩1,453,500</span>
+              </div>
+            </div>
+<div class="buy-note muted">매수완료 평단 ₩100,700</div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">KODEX 골드선물</span>
+                <span class="muted" style="font-size:11px"> × 26주</span>
+                <span class="buy-status-done">완료</span>
+              </div>
+              <div class="buy-right">
+                <span>₩29,690</span>
+                <span class="down" style="margin-left:6px">-0.02%</span>
+                <span class="muted" style="margin-left:8px">₩771,940</span>
+              </div>
+            </div>
+<div class="buy-note muted">매수완료 평단 ₩28,570</div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">HD현대일렉트릭</span>
+                <span class="muted" style="font-size:11px"> × 1주</span>
+                <span class="buy-status-done">완료</span>
+              </div>
+              <div class="buy-right">
+                <span>₩1,050,000</span>
+                <span class="down" style="margin-left:6px">-5.49%</span>
+                <span class="muted" style="margin-left:8px">₩1,050,000</span>
+              </div>
+            </div>
+<div class="buy-note muted">매수완료 평단 ₩967,000</div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">LIG넥스원</span>
+                <span class="muted" style="font-size:11px"> × 2주</span>
+                <span class="buy-status-done">완료</span>
+              </div>
+              <div class="buy-right">
+                <span>₩509,000</span>
+                <span class="up" style="margin-left:6px">+1.19%</span>
+                <span class="muted" style="margin-left:8px">₩1,018,000</span>
+              </div>
+            </div>
+<div class="buy-note muted">매수완료 평단 ₩461,500</div>
+</div>
+<div class="buy-phase">
+<div class="buy-phase-label">Phase 2 (조정 시)
+ <span class="muted" style="font-size:11px">— 1%+ 조정 발생 시</span>
+</div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">신한지주</span>
+                <span class="muted" style="font-size:11px"> × 9주</span>
+                <span class="buy-status-waiting">조건대기</span>
+              </div>
+              <div class="buy-right">
+                <span>₩96,900</span>
+                <span class="down" style="margin-left:6px">-3.00%</span>
+                <span class="muted" style="margin-left:8px">₩872,100</span>
+              </div>
+            </div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">KODEX 골드선물</span>
+                <span class="muted" style="font-size:11px"> × 15주</span>
+                <span class="buy-status-waiting">조건대기</span>
+              </div>
+              <div class="buy-right">
+                <span>₩29,690</span>
+                <span class="down" style="margin-left:6px">-0.02%</span>
+                <span class="muted" style="margin-left:8px">₩445,350</span>
+              </div>
+            </div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">HD현대일렉트릭</span>
+                <span class="muted" style="font-size:11px"> × 1주</span>
+                <span class="buy-status-waiting">조건대기</span>
+              </div>
+              <div class="buy-right">
+                <span>₩1,050,000</span>
+                <span class="down" style="margin-left:6px">-5.49%</span>
+                <span class="muted" style="margin-left:8px">₩1,050,000</span>
+              </div>
+            </div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">LIG넥스원</span>
+                <span class="muted" style="font-size:11px"> × 2주</span>
+                <span class="buy-status-waiting">조건대기</span>
+              </div>
+              <div class="buy-right">
+                <span>₩509,000</span>
+                <span class="up" style="margin-left:6px">+1.19%</span>
+                <span class="muted" style="margin-left:8px">₩1,018,000</span>
+              </div>
+            </div>
+</div>
+<div class="buy-phase">
+<div class="buy-phase-label">Phase 3 (FOMC 후)
+ <span class="muted" style="font-size:11px">— 3/18 FOMC 결과 확인 후</span>
+</div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">신한지주</span>
+                <span class="muted" style="font-size:11px"> × 6주</span>
+                <span class="buy-status-waiting">조건대기</span>
+              </div>
+              <div class="buy-right">
+                <span>₩96,900</span>
+                <span class="down" style="margin-left:6px">-3.00%</span>
+                <span class="muted" style="margin-left:8px">₩581,400</span>
+              </div>
+            </div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">KODEX 골드선물</span>
+                <span class="muted" style="font-size:11px"> × 11주</span>
+                <span class="buy-status-waiting">조건대기</span>
+              </div>
+              <div class="buy-right">
+                <span>₩29,690</span>
+                <span class="down" style="margin-left:6px">-0.02%</span>
+                <span class="muted" style="margin-left:8px">₩326,590</span>
+              </div>
+            </div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">HD현대일렉트릭</span>
+                <span class="muted" style="font-size:11px"> × 1주</span>
+                <span class="buy-status-waiting">조건대기</span>
+              </div>
+              <div class="buy-right">
+                <span>₩1,050,000</span>
+                <span class="down" style="margin-left:6px">-5.49%</span>
+                <span class="muted" style="margin-left:8px">₩1,050,000</span>
+              </div>
+            </div>
+
+            <div class="buy-row">
+              <div class="buy-left">
+                <span class="buy-name">LIG넥스원</span>
+                <span class="muted" style="font-size:11px"> × 1주</span>
+                <span class="buy-status-waiting">조건대기</span>
+              </div>
+              <div class="buy-right">
+                <span>₩509,000</span>
+                <span class="up" style="margin-left:6px">+1.19%</span>
+                <span class="muted" style="margin-left:8px">₩509,000</span>
+              </div>
+            </div>
+</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+async function triggerRefresh() {
+  const btn = document.getElementById('refreshBtn');
+  const text = document.getElementById('refreshText');
+
+  btn.disabled = true;
+  btn.classList.add('spinning');
+  text.textContent = '업데이트 중...';
+
+  try {
+    // Fetch fresh HTML from Python serverless function
+    const response = await fetch('/api/refresh', {
+      method: 'GET',
+      headers: { 'Accept': 'text/html' }
+    });
+
+    if (response.ok) {
+      const newHtml = await response.text();
+
+      // Replace entire document with fresh HTML
+      document.open();
+      document.write(newHtml);
+      document.close();
+
+      // Success feedback will be in the new page
+    } else {
+      throw new Error(`HTTP ${response.status}`);
+    }
+  } catch (error) {
+    text.textContent = '✗ 실패';
+    btn.classList.remove('spinning');
+    setTimeout(() => {
+      text.textContent = '새로고침';
+      btn.disabled = false;
+    }, 3000);
+  }
+}
+</script>
+
+</body>
+</html>
