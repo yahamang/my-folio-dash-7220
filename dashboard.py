@@ -235,8 +235,17 @@ def calculate_portfolio(config: dict, price_data: dict) -> dict:
         total_krw += acc_total
 
     # 현금
-    cash_cfg   = config["portfolio"]["cash"]
-    cash_krw   = cash_cfg["deposit_krw"] + cash_cfg["securities_usd"] * usd_krw
+    cash_cfg = config["portfolio"]["cash"]
+    # 새로운 구조 지원 (securities + deposit)
+    if "securities" in cash_cfg and "deposit" in cash_cfg:
+        securities_krw = cash_cfg["securities"].get("total_krw", 0)
+        securities_usd = cash_cfg["securities"].get("overseas_usd", 0)
+        deposit_krw = cash_cfg["deposit"].get("amount_krw", 0)
+        cash_krw = securities_krw + securities_usd * usd_krw + deposit_krw
+    else:
+        # 기존 구조 fallback
+        cash_krw = cash_cfg.get("deposit_krw", 0) + cash_cfg.get("securities_usd", 0) * usd_krw
+
     ac_values["cash"] = ac_values.get("cash", 0) + cash_krw
     total_krw += cash_krw
 

@@ -40,10 +40,21 @@
     },
 
     "cash": {
-      "securities_usd": 0,
-      "deposit_krw": 7211171,
-      "deposit_maturity": "2026-03-20",
-      "note": "Phase 1 매수 완료 (신한지주 15주, 골드 26주, LIG넥스원 2주, HD현대일렉트릭 1주)"
+      "securities": {
+        "isa_krw": 5884164,
+        "overseas_usd": 20,
+        "cma_krw": 1355306,
+        "pension_krw": 59166,
+        "total_krw": 7298636,
+        "note": "증권계좌 예수금 (Phase 1 매수 완료, 추가 매수 대기)"
+      },
+      "deposit": {
+        "amount_krw": 5000000,
+        "rate_pct": 3.2,
+        "term": "1년",
+        "maturity": "2026-03-20",
+        "note": "정기예금 (만기 시 전기/원자재/저PBR 분할 매수 예정)"
+      }
     },
 
     "crypto": {
