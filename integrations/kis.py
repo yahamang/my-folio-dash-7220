@@ -21,16 +21,11 @@ KIS_APP_KEY = os.getenv("KIS_APP_KEY")
 KIS_APP_SECRET = os.getenv("KIS_APP_SECRET")
 KIS_ENV = os.getenv("KIS_ENV", "real")  # real or virtual
 
-# 디버그: KIS_ENV 값 확인
-print(f"[KIS DEBUG] KIS_ENV={KIS_ENV}, APP_KEY={KIS_APP_KEY[:10] if KIS_APP_KEY else None}...")
-
-# API URL - 명시적으로 real 환경 사용
-# Vercel 환경변수 문제로 인해 임시로 하드코딩
-BASE_URL = "https://openapi.koreainvestment.com:9443"  # real
-# if KIS_ENV == "real":
-#     BASE_URL = "https://openapi.koreainvestment.com:9443"
-# else:
-#     BASE_URL = "https://openapivts.koreainvestment.com:29443"
+# API URL
+if KIS_ENV == "real":
+    BASE_URL = "https://openapi.koreainvestment.com:9443"
+else:
+    BASE_URL = "https://openapivts.koreainvestment.com:29443"
 
 # 토큰 캐시 (메모리)
 _token_cache = {"access_token": None, "expires_at": None}

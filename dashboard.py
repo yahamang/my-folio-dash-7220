@@ -65,28 +65,48 @@ def fetch_all_prices(config: dict) -> dict:
     us_stocks = [t for t in needed if not (t.endswith(".KS") or t.endswith(".KQ"))]
 
     prices, errors = {}, []
+    use_kis = False  # KIS API 사용 여부
 
-    # 1. 한국 주식: KIS API 사용
+    # 1. 한국 주식: KIS API 시도, 실패 시 yfinance fallback
     if korean_stocks:
         try:
             from integrations.kis import fetch_korean_stocks
+            import time
+            time.sleep(1.1)  # OAuth 유량 제한 대응 (1초당 1건)
             kis_result = fetch_korean_stocks(korean_stocks)
-            for ticker, data in kis_result["prices"].items():
-                if data:
-                    prices[ticker] = {
-                        "price": data["price"],
-                        "prev_close": data["price"] / (1 + data["change_pct"]/100),
-                        "change_pct": data["change_pct"]
-                    }
-                else:
-                    prices[ticker] = {"price": None, "prev_close": None, "change_pct": 0}
-            errors.extend(kis_result["errors"])
+
+            # KIS API 성공 시
+            if kis_result["errors"]:
+                # 에러가 있지만 일부 데이터는 있을 수 있음
+                for ticker, data in kis_result["prices"].items():
+                    if data:
+                        prices[ticker] = {
+                            "price": data["price"],
+                            "prev_close": data["price"] / (1 + data["change_pct"]/100),
+                            "change_pct": data["change_pct"]
+                        }
+                        use_kis = True
+                # 실패한 티커는 yfinance로 재시도
+                failed_tickers = [t for t in korean_stocks if t not in prices or prices[t].get("price") is None]
+                if failed_tickers:
+                    us_stocks.extend(failed_tickers)
+                errors.append(f"KIS API 일부 실패 (fallback to yfinance): {', '.join(kis_result['errors'])}")
+            else:
+                # 완전 성공
+                for ticker, data in kis_result["prices"].items():
+                    if data:
+                        prices[ticker] = {
+                            "price": data["price"],
+                            "prev_close": data["price"] / (1 + data["change_pct"]/100),
+                            "change_pct": data["change_pct"]
+                        }
+                        use_kis = True
         except Exception as e:
-            errors.append(f"KIS API: {e}")
-            # KIS 실패 시 fallback to yfinance
+            errors.append(f"KIS API 전체 실패 (fallback to yfinance): {e}")
+            # KIS 실패 시 모든 한국 주식을 yfinance로
             us_stocks.extend(korean_stocks)
 
-    # 2. 미국 주식/ETF/지수: yfinance 사용
+    # 2. 미국 주식/ETF/지수 + KIS 실패한 한국 주식: yfinance 사용
     if us_stocks:
         try:
             import requests
@@ -113,11 +133,13 @@ def fetch_all_prices(config: dict) -> dict:
         except Exception as e:
             errors.append(f"yfinance: {e}")
 
+    source = "KIS API + Yahoo Finance" if use_kis else "Yahoo Finance"
+
     return {
         "prices": prices,
         "errors": errors,
         "fetched_at": datetime.now().isoformat(timespec="seconds"),
-        "source": "KIS API (한국 주식) + Yahoo Finance (미국)",
+        "source": source,
         "binance": None,   # main()에서 채워짐
     }
 
