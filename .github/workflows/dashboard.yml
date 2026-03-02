@@ -22,7 +22,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install yfinance
+        run: pip install -r requirements.txt
 
       - name: Create integrations/.env from secrets
         run: |
@@ -32,6 +32,10 @@ jobs:
           echo "KIS_APP_KEY=${{ secrets.KIS_APP_KEY }}" >> integrations/.env
           echo "KIS_APP_SECRET=${{ secrets.KIS_APP_SECRET }}" >> integrations/.env
           echo "KIS_ENV=real" >> integrations/.env
+
+      - name: Fetch RSS news
+        run: python3 integrations/rss_fetcher.py
+        continue-on-error: true
 
       - name: Generate dashboard
         run: python3 dashboard.py

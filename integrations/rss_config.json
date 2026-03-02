@@ -1,0 +1,153 @@
+{
+  "feeds": [
+    {
+      "url": "https://www.reuters.com/rssfeed/worldNews",
+      "category": "geopolitical",
+      "name": "Reuters World",
+      "weight": 1.0,
+      "language": "en"
+    },
+    {
+      "url": "http://feeds.bbci.co.uk/news/world/rss.xml",
+      "category": "geopolitical",
+      "name": "BBC News",
+      "weight": 0.9,
+      "language": "en"
+    },
+    {
+      "url": "http://www.koreaherald.com/common/rss_xml.php?ct=020100000000",
+      "category": "geopolitical",
+      "name": "Korea Herald",
+      "weight": 0.8,
+      "language": "en"
+    },
+    {
+      "url": "https://www.aljazeera.com/xml/rss/all.xml",
+      "category": "geopolitical",
+      "name": "Al Jazeera",
+      "weight": 0.85,
+      "language": "en"
+    },
+    {
+      "url": "https://feeds.bloomberg.com/markets/news.rss",
+      "category": "economic_us",
+      "name": "Bloomberg Markets",
+      "weight": 1.0,
+      "language": "en"
+    },
+    {
+      "url": "http://feeds.marketwatch.com/marketwatch/topstories/",
+      "category": "economic_us",
+      "name": "MarketWatch",
+      "weight": 0.9,
+      "language": "en"
+    },
+    {
+      "url": "https://www.federalreserve.gov/feeds/press_all.xml",
+      "category": "central_banks",
+      "name": "Federal Reserve",
+      "weight": 1.0,
+      "language": "en"
+    },
+    {
+      "url": "https://www.yna.co.kr/rss/news.xml",
+      "category": "economic_korea",
+      "name": "연합뉴스",
+      "weight": 1.0,
+      "language": "ko"
+    },
+    {
+      "url": "https://www.hankyung.com/feed/all-news",
+      "category": "economic_korea",
+      "name": "한국경제",
+      "weight": 0.9,
+      "language": "ko"
+    },
+    {
+      "url": "https://www.mk.co.kr/rss/30100041/",
+      "category": "economic_korea",
+      "name": "매일경제",
+      "weight": 0.85,
+      "language": "ko"
+    },
+    {
+      "url": "https://www.ecb.europa.eu/rss/press.html",
+      "category": "central_banks",
+      "name": "ECB Press",
+      "weight": 0.9,
+      "language": "en"
+    },
+    {
+      "url": "https://www.defensenews.com/arc/outboundfeeds/rss/",
+      "category": "sector_defense",
+      "name": "Defense News",
+      "weight": 0.9,
+      "language": "en"
+    },
+    {
+      "url": "https://www.janes.com/feeds/news",
+      "category": "sector_defense",
+      "name": "Janes Defence",
+      "weight": 0.85,
+      "language": "en"
+    },
+    {
+      "url": "https://www.power-eng.com/rss/",
+      "category": "sector_electric",
+      "name": "Power Engineering",
+      "weight": 0.8,
+      "language": "en"
+    },
+    {
+      "url": "https://www.renewableenergyworld.com/feeds/all/",
+      "category": "sector_electric",
+      "name": "Renewable Energy World",
+      "weight": 0.75,
+      "language": "en"
+    },
+    {
+      "url": "https://www.ft.com/rss/home",
+      "category": "sector_financial",
+      "name": "Financial Times",
+      "weight": 0.9,
+      "language": "en"
+    },
+    {
+      "url": "https://feeds.a.dj.com/rss/WSJcomUSBusiness.xml",
+      "category": "sector_financial",
+      "name": "Wall Street Journal",
+      "weight": 0.95,
+      "language": "en"
+    }
+  ],
+  "keywords": [
+    "신한",
+    "LIG넥스원",
+    "HD현대일렉트릭",
+    "KODEX",
+    "TIGER",
+    "SCHD",
+    "VOO",
+    "금융지주",
+    "KB금융",
+    "하나금융",
+    "한화에어로스페이스",
+    "한국항공우주",
+    "현대로템",
+    "LS ELECTRIC",
+    "효성중공업",
+    "두산에너빌리티",
+    "금",
+    "구리",
+    "우라늄",
+    "bitcoin",
+    "BTC",
+    "FOMC",
+    "Fed",
+    "inflation",
+    "interest rate",
+    "금리",
+    "물가",
+    "환율"
+  ]
+}
