@@ -29,6 +29,9 @@ jobs:
           mkdir -p integrations
           echo "BINANCE_API_KEY=${{ secrets.BINANCE_API_KEY }}" > integrations/.env
           echo "BINANCE_SECRET_KEY=${{ secrets.BINANCE_SECRET_KEY }}" >> integrations/.env
+          echo "KIS_APP_KEY=${{ secrets.KIS_APP_KEY }}" >> integrations/.env
+          echo "KIS_APP_SECRET=${{ secrets.KIS_APP_SECRET }}" >> integrations/.env
+          echo "KIS_ENV=real" >> integrations/.env
 
       - name: Generate dashboard
         run: python3 dashboard.py --no-save
