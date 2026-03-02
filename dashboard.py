@@ -109,12 +109,9 @@ def fetch_all_prices(config: dict) -> dict:
     # 2. 미국 주식/ETF/지수 + KIS 실패한 한국 주식: yfinance 사용
     if us_stocks:
         try:
-            import requests
-            session = requests.Session()
-            session.headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-
+            # Let yfinance handle its own session (requires curl_cffi internally)
             raw = yf.download(us_stocks, period="2d", interval="1d",
-                              progress=False, auto_adjust=True, timeout=30, session=session)
+                              progress=False, auto_adjust=True, timeout=30)
             close = raw["Close"]
 
             for t in us_stocks:
