@@ -377,9 +377,6 @@ def calculate_strategy_signals(config: dict, price_data: dict, portfolio: dict) 
         momentum_score += 1
         vix_level = "안정 (낙관)"
 
-    # 외국인/기관 순매수 (데이터 없으므로 placeholder)
-    foreign_inst_flow = "데이터 없음"
-
     market_momentum = {
         "score": momentum_score,
         "kr_index_trend": kr_trend,
@@ -387,7 +384,6 @@ def calculate_strategy_signals(config: dict, price_data: dict, portfolio: dict) 
         "kosdaq_chg": kosdaq_chg,
         "vix_level": vix_level,
         "vix_value": vix_val,
-        "foreign_institutional": foreign_inst_flow,
         "interpretation": (
             "강한 매수 환경" if momentum_score >= 2 else
             "매수 선호" if momentum_score == 1 else
@@ -1145,10 +1141,6 @@ def build_strategy_recommendations(config: dict, price_data: dict, portfolio: di
           <span class="muted">VIX 공포지수</span>
           <span class="{_chg_cls(-mm['vix_value'] + 20)}">{mm['vix_level']}</span>
           <span class="muted" style="font-size:10px">{mm['vix_value']:.1f}</span>
-        </div>
-        <div class="strategy-metric">
-          <span class="muted">외국인/기관</span>
-          <span class="muted">{mm['foreign_institutional']}</span>
         </div>
         <div class="strategy-metric">
           <span class="muted">종합 판단</span>
