@@ -1,7 +1,7 @@
 {
   "meta": {
     "version": "1.0",
-    "last_updated": "2026-02-15",
+    "last_updated": "2026-03-03",
     "base_currency": "KRW",
     "usd_to_krw_fallback": 1443
   },
@@ -23,10 +23,10 @@
           { "ticker": "069500.KS", "name": "KODEX 200",               "shares": 23,  "asset_class": "korea_index",     "avg_price": 56730,  "avg_cost_krw": 1304790, "dividend_yield": 1.5 },
           { "ticker": "133690.KS", "name": "TIGER 미국나스닥100",          "shares": 12,  "asset_class": "global_growth",   "avg_price": 127219, "avg_cost_krw": 1526623, "dividend_yield": 0.5 },
           { "ticker": "458730.KS", "name": "TIGER 미국배당다우존스",   "shares": 150, "asset_class": "global_dividend", "avg_price": 11883,  "avg_cost_krw": 1782465, "dividend_yield": 3.0 },
-          { "ticker": "055550.KS", "name": "신한지주",                "shares": 15,  "asset_class": "korea_low_pbr",   "avg_price": 100700, "avg_cost_krw": 1510500, "dividend_yield": 4.8 },
-          { "ticker": "267260.KS", "name": "HD현대일렉트릭",           "shares": 1,   "asset_class": "korea_electric",  "avg_price": 967000, "avg_cost_krw": 967000,  "dividend_yield": 1.5 },
+          { "ticker": "055550.KS", "name": "신한지주",                "shares": 24,  "asset_class": "korea_low_pbr",   "avg_price": 99313, "avg_cost_krw": 2383500, "dividend_yield": 4.8 },
+          { "ticker": "267260.KS", "name": "HD현대일렉트릭",           "shares": 2,   "asset_class": "korea_electric",  "avg_price": 1004000, "avg_cost_krw": 2008000,  "dividend_yield": 1.5 },
           { "ticker": "079550.KS", "name": "LIG넥스원",                "shares": 2,   "asset_class": "korea_defense",   "avg_price": 461500, "avg_cost_krw": 923000,  "dividend_yield": 1.0 },
-          { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",           "shares": 26,  "asset_class": "commodities",     "avg_price": 28570,  "avg_cost_krw": 742820,  "dividend_yield": 0 }
+          { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",           "shares": 41,  "asset_class": "commodities",     "avg_price": 29312,  "avg_cost_krw": 1201820,  "dividend_yield": 0 }
         ]
       },
       "overseas": {
@@ -41,12 +41,12 @@
 
     "cash": {
       "securities": {
-        "isa_krw": 5884164,
+        "isa_krw": 3511164,
         "overseas_usd": 20,
         "cma_krw": 1355306,
         "pension_krw": 59166,
-        "total_krw": 7298636,
-        "note": "증권계좌 예수금 (Phase 1 매수 완료, 추가 매수 대기)"
+        "total_krw": 4925636,
+        "note": "증권계좌 예수금 (Phase 2 매수 완료: 신한/골드/HD일렉, Phase 3 대기)"
       },
       "deposit": {
         "amount_krw": 5000000,
@@ -110,10 +110,10 @@
         "ratio": 0.3,
         "trigger": "1%+ 조정 발생 시",
         "items": [
-          { "ticker": "055550.KS", "name": "신한지주",          "target_shares": 9,  "status": "waiting" },
-          { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",    "target_shares": 15, "status": "waiting" },
-          { "ticker": "267260.KS", "name": "HD현대일렉트릭",    "target_shares": 1,  "status": "waiting" },
-          { "ticker": "079550.KS", "name": "LIG넥스원",         "target_shares": 2,  "status": "waiting" }
+          { "ticker": "055550.KS", "name": "신한지주",          "target_shares": 9,  "status": "done", "note": "매수완료 9주 @ ₩97,000" },
+          { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",    "target_shares": 15, "status": "done", "note": "매수완료 15주 @ ₩30,600" },
+          { "ticker": "267260.KS", "name": "HD현대일렉트릭",    "target_shares": 1,  "status": "done", "note": "매수완료 1주 @ ₩1,041,000" },
+          { "ticker": "079550.KS", "name": "LIG넥스원",         "target_shares": 2,  "status": "skipped", "note": "상한가 급등으로 보류, Phase 3 재검토" }
         ]
       },
       "phase3": {
