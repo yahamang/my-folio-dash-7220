@@ -24,7 +24,7 @@
           { "ticker": "133690.KS", "name": "TIGER 미국나스닥100",          "shares": 12,  "asset_class": "global_growth",   "avg_price": 127219, "avg_cost_krw": 1526623, "dividend_yield": 0.5 },
           { "ticker": "458730.KS", "name": "TIGER 미국배당다우존스",   "shares": 150, "asset_class": "global_dividend", "avg_price": 11883,  "avg_cost_krw": 1782465, "dividend_yield": 3.0 },
           { "ticker": "055550.KS", "name": "신한지주",                "shares": 24,  "asset_class": "korea_low_pbr",   "avg_price": 99313, "avg_cost_krw": 2383500, "dividend_yield": 4.8 },
-          { "ticker": "267260.KS", "name": "HD현대일렉트릭",           "shares": 2,   "asset_class": "korea_electric",  "avg_price": 1004000, "avg_cost_krw": 2008000,  "dividend_yield": 1.5 },
+          { "ticker": "267260.KS", "name": "HD현대일렉트릭",           "shares": 3,   "asset_class": "korea_electric",  "avg_price": 977000, "avg_cost_krw": 2931000,  "dividend_yield": 1.5 },
           { "ticker": "079550.KS", "name": "LIG넥스원",                "shares": 2,   "asset_class": "korea_defense",   "avg_price": 461500, "avg_cost_krw": 923000,  "dividend_yield": 1.0 },
           { "ticker": "132030.KS", "name": "KODEX 골드선물(H)",           "shares": 41,  "asset_class": "commodities",     "avg_price": 29312,  "avg_cost_krw": 1201820,  "dividend_yield": 0 }
         ]
@@ -41,12 +41,12 @@
 
     "cash": {
       "securities": {
-        "isa_krw": 3511164,
+        "isa_krw": 2588164,
         "overseas_usd": 20,
         "cma_krw": 1355306,
         "pension_krw": 59166,
-        "total_krw": 4925636,
-        "note": "증권계좌 예수금 (Phase 2 매수 완료: 신한/골드/HD일렉, Phase 3 대기)"
+        "total_krw": 4002636,
+        "note": "증권계좌 예수금 (폭락장 추가 매수: HD일렉 1주@923k, Phase 3 대기)"
       },
       "deposit": {
         "amount_krw": 5000000,
