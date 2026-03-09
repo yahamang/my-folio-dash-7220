@@ -1658,21 +1658,18 @@ async function triggerRefresh() {{
   text.textContent = '업데이트 중...';
 
   try {{
-    // Fetch fresh HTML from Python serverless function
-    const response = await fetch('/api/refresh', {{
-      method: 'GET',
-      headers: {{ 'Accept': 'text/html' }}
+    // GitHub Actions 워크플로우 트리거 (Vercel edge function 경유)
+    const response = await fetch('https://investment-coral.vercel.app/api/trigger-refresh', {{
+      method: 'POST'
     }});
 
     if (response.ok) {{
-      const newHtml = await response.text();
-
-      // Replace entire document with fresh HTML
-      document.open();
-      document.write(newHtml);
-      document.close();
-
-      // Success feedback will be in the new page
+      text.textContent = '✓ 갱신 중 (~2분)';
+      btn.classList.remove('spinning');
+      setTimeout(() => {{
+        text.textContent = '새로고침';
+        btn.disabled = false;
+      }}, 10000);
     }} else {{
       throw new Error(`HTTP ${{response.status}}`);
     }}
