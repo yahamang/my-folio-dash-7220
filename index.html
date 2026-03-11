@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>투자 대시보드 2026-03-11 04:16</title>
+<title>투자 대시보드 2026-03-11 05:32</title>
 <style>
 :root{--bg:#0f1117;--card:#1a1d27;--border:#2a2d3a;--text:#e2e8f0;
       --muted:#94a3b8;--green:#4ade80;--red:#f87171;--yellow:#fbbf24;
@@ -102,6 +102,15 @@ tr:last-child td{border-bottom:none}
 /* 데이터 출처 */
 .data-source{font-size:10px;color:var(--muted);margin-top:12px;padding-top:8px;
              border-top:1px solid var(--border);text-align:right;letter-spacing:.2px}
+
+/* AI 코멘터리 */
+.ai-commentary{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);
+               border-radius:8px;padding:12px 14px;margin-bottom:14px}
+.ai-label{font-size:10px;font-weight:700;color:var(--blue);margin-bottom:6px;letter-spacing:.5px}
+.ai-summary{font-size:12px;line-height:1.6}
+.ai-signals{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ai-signal{background:rgba(96,165,250,.15);color:var(--blue);border-radius:12px;
+           padding:2px 9px;font-size:11px;font-weight:600}
 
 /* 수익성 요약 */
 .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
@@ -250,7 +259,7 @@ tr:last-child td{border-bottom:none}
   <div class="header">
     <div>
       <h1>📊 투자 대시보드</h1>
-      <div class="sub">업데이트: 2026-03-11 04:16 &nbsp;|&nbsp; 환율: ₩1,467/USD</div>
+      <div class="sub">업데이트: 2026-03-11 05:32 &nbsp;|&nbsp; 환율: ₩1,465/USD</div>
     </div>
     <div class="header-right">
       <button id="refreshBtn" class="refresh-btn" onclick="triggerRefresh()">
@@ -260,13 +269,13 @@ tr:last-child td{border-bottom:none}
         <span id="refreshText">새로고침</span>
       </button>
       <div>
-        <div class="total-val">₩37,040,400</div>
-        <div class="total-usd">≈ $25,247 USD</div>
+        <div class="total-val">₩36,970,592</div>
+        <div class="total-usd">≈ $25,241 USD</div>
       </div>
     </div>
   </div>
 
-  <div style="color:var(--yellow);font-size:12px;margin-bottom:12px">⚠ 조회 실패: KIS API 일부 실패 (fallback to yfinance): 458730.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 133690.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 267260.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 079550.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 055550.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 132030.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 069500.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP</div>
+  <div style="color:var(--yellow);font-size:12px;margin-bottom:12px">⚠ 조회 실패: KIS API 일부 실패 (fallback to yfinance): 079550.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 458730.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 133690.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 069500.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 055550.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 132030.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP, 267260.KS: 403 Client Error: Forbidden for url: https://openapi.koreainvestment.com:9443/oauth2/tokenP</div>
 
   <!-- 뉴스 속보 -->
   <div class="news-section">
@@ -274,17 +283,17 @@ tr:last-child td{border-bottom:none}
   <div class="news-grid">
     <div class="news-card" style="border-left-color: #3b82f6;">
       <div class="news-category" style="color: #3b82f6;">한국경제</div>
-      <div class="news-headline"><a href="https://www.hankyung.com/article/202603113605g" target="_blank">현대차그룹, 새만금에 약 9조 투자…혁신성장거점 구축</a></div>
-      <div class="news-meta">한국경제 · </div>
+      <div class="news-headline"><a href="https://www.yna.co.kr/view/AKR20260311111900063" target="_blank">대전경찰청, 10월까지 민생물가 교란 범죄 특별 단속</a></div>
+      <div class="news-meta">연합뉴스 · </div>
     </div>
     <div class="news-card" style="border-left-color: #3b82f6;">
       <div class="news-category" style="color: #3b82f6;">한국경제</div>
-      <div class="news-headline"><a href="https://www.hankyung.com/article/202603113586i" target="_blank">정원오 "서울을 'G2 도시'로…'감사의 정원'은 세금 낭비"</a></div>
-      <div class="news-meta">한국경제 · </div>
+      <div class="news-headline"><a href="https://www.yna.co.kr/view/AKR20260311104600005" target="_blank">'현역가왕3' 우승 홍지윤 "암투병 팬 위해 도전…상금은 기부"</a></div>
+      <div class="news-meta">연합뉴스 · </div>
     </div>
     <div class="news-card" style="border-left-color: #3b82f6;">
       <div class="news-category" style="color: #3b82f6;">미국경제</div>
-      <div class="news-headline"><a href="https://www.bloomberg.com/news/articles/2026-03-11/japan-5-year-bond-sale-sees-firmer-demand-than-12-month-average-mmlhrslz" target="_blank">Japan Five-Year Bond Sale Sees Firm Demand as BOJ Path Clouded</a></div>
+      <div class="news-headline"><a href="https://www.bloomberg.com/news/articles/2026-03-11/jpmorgan-marks-down-private-credit-portfolios-ft-reports" target="_blank">JPMorgan Marks Down Private Credit Portfolios, FT Reports</a></div>
       <div class="news-meta">Bloomberg Markets · </div>
     </div>
     <div class="news-card" style="border-left-color: #3b82f6;">
@@ -300,6 +309,13 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
+  <!-- 수익률 차트 -->
+  <div class="full">
+    <div class="card">
+      
+    </div>
+  </div>
+
   <!-- 수익성 요약 -->
   <div class="full">
     <div class="card">
@@ -308,8 +324,8 @@ tr:last-child td{border-bottom:none}
     <div class="summary-grid">
       <div class="summary-item">
         <div class="summary-label">총 평가액</div>
-        <div class="summary-value blue">₩37,040,400</div>
-        <div class="summary-sub muted">≈ $25,247</div>
+        <div class="summary-value blue">₩36,970,592</div>
+        <div class="summary-sub muted">≈ $25,241</div>
       </div>
       <div class="summary-item">
         <div class="summary-label">총 매입금액</div>
@@ -318,30 +334,30 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="summary-item">
         <div class="summary-label">총 수익률</div>
-        <div class="summary-value"><span class="up">+24.9%</span></div>
-        <div class="summary-sub"><span class="up">+₩5,139,421</span></div>
+        <div class="summary-value"><span class="up">+24.6%</span></div>
+        <div class="summary-sub"><span class="up">+₩5,073,277</span></div>
       </div>
       <div class="summary-item">
         <div class="summary-label">연간 배당 예측</div>
-        <div class="summary-value green">₩505,425</div>
-        <div class="summary-sub muted">월 ≈ ₩42,119 · 2.4%</div>
+        <div class="summary-value green">₩503,973</div>
+        <div class="summary-sub muted">월 ≈ ₩41,998 · 2.4%</div>
       </div>
     </div>
 <div class="summary-divider"></div>
 
     <div class="acc-pnl-row">
       <span>연금계좌</span>
-      <span>₩3,613,450 &nbsp; <span class="up">+28.2%</span> <span class="muted" style="font-size:11px">(+₩795,880)</span></span>
+      <span>₩3,606,950 &nbsp; <span class="up">+28.0%</span> <span class="muted" style="font-size:11px">(+₩789,380)</span></span>
     </div>
 
     <div class="acc-pnl-row">
       <span>ISA계좌</span>
-      <span>₩13,975,570 &nbsp; <span class="up">+15.9%</span> <span class="muted" style="font-size:11px">(+₩1,922,372)</span></span>
+      <span>₩13,929,355 &nbsp; <span class="up">+15.6%</span> <span class="muted" style="font-size:11px">(+₩1,876,157)</span></span>
     </div>
 
     <div class="acc-pnl-row">
       <span>해외주식계좌</span>
-      <span>₩8,208,483 &nbsp; <span class="up">+41.8%</span> <span class="muted" style="font-size:11px">(+₩2,421,169)</span></span>
+      <span>₩8,195,054 &nbsp; <span class="up">+41.6%</span> <span class="muted" style="font-size:11px">(+₩2,407,740)</span></span>
     </div>
     </div>
   </div>
@@ -388,7 +404,7 @@ tr:last-child td{border-bottom:none}
           <span class="muted">한국 지수</span>
           <span class="up">강한 상승</span>
           <span class="muted" style="font-size:10px">
-            KOSPI +3.61% · KOSDAQ +2.16%
+            KOSPI +3.30% · KOSDAQ +1.88%
           </span>
         </div>
         <div class="strategy-metric">
@@ -450,13 +466,13 @@ tr:last-child td{border-bottom:none}
         <div class="rebal-priority-row">
           <span class="badge badge-over">초과</span>
           <span>현금 (예금+증권)</span>
-          <span class="red">+9.4%p (₩3,475,918)</span>
+          <span class="red">+9.4%p (₩3,486,341)</span>
           <span class="muted" style="font-size:11px">매도 또는 추가 매수 중단</span>
         </div>
         <div class="rebal-priority-row">
           <span class="badge badge-under">부족</span>
           <span>원자재 (금/구리/우라늄)</span>
-          <span class="blue">-6.7%p (₩2,486,135)</span>
+          <span class="blue">-6.7%p (₩2,478,334)</span>
           <span class="muted" style="font-size:11px">추가 매수 우선</span>
         </div>
         </div>
@@ -492,14 +508,14 @@ tr:last-child td{border-bottom:none}
 
             <div class="ind-card">
               <div class="ind-label">KOSPI</div>
-              <div class="ind-value">5,732.44</div>
-              <div class="ind-chg up">+3.61%</div>
+              <div class="ind-value">5,714.92</div>
+              <div class="ind-chg up">+3.30%</div>
             </div>
 
             <div class="ind-card">
               <div class="ind-label">KOSDAQ</div>
-              <div class="ind-value">1,162.26</div>
-              <div class="ind-chg up">+2.16%</div>
+              <div class="ind-value">1,159.03</div>
+              <div class="ind-chg up">+1.88%</div>
             </div>
 
             <div class="ind-card">
@@ -524,8 +540,8 @@ tr:last-child td{border-bottom:none}
 
             <div class="ind-card">
               <div class="ind-label">USD/KRW 환율</div>
-              <div class="ind-value">₩1,467.1</div>
-              <div class="ind-chg up">+0.18%</div>
+              <div class="ind-value">₩1,464.7</div>
+              <div class="ind-chg up">+0.02%</div>
             </div>
 
             <div class="ind-card">
@@ -538,14 +554,14 @@ tr:last-child td{border-bottom:none}
 
             <div class="ind-card">
               <div class="ind-label">금 ($/oz)</div>
-              <div class="ind-value">$5,211.80</div>
-              <div class="ind-chg down">-0.34%</div>
+              <div class="ind-value">$5,210.30</div>
+              <div class="ind-chg down">-0.37%</div>
             </div>
 
             <div class="ind-card">
               <div class="ind-label">구리 ($/lb)</div>
-              <div class="ind-value">$5.94</div>
-              <div class="ind-chg up">+0.55%</div>
+              <div class="ind-value">$5.93</div>
+              <div class="ind-chg up">+0.40%</div>
             </div>
 
             <div class="ind-card">
@@ -558,11 +574,11 @@ tr:last-child td{border-bottom:none}
 
             <div class="ind-card">
               <div class="ind-label">BTC (USD)</div>
-              <div class="ind-value">$69,662</div>
+              <div class="ind-value">$69,919</div>
               <div class="ind-chg neutral">+0.00%</div>
             </div>
 </div></div>
-      <div class="data-source">출처: Yahoo Finance &nbsp;|&nbsp; 조회: 2026-03-11 04:16</div>
+      <div class="data-source">출처: Yahoo Finance &nbsp;|&nbsp; 조회: 2026-03-11 05:32</div>
     </div>
   </div>
 
@@ -585,7 +601,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:45.0%;background:#60a5fa"></div>
             </div>
             <span class="bar-gap red">
-              +7.5%p &nbsp; ₩2,795,087 초과
+              +7.5%p &nbsp; ₩2,791,137 초과
             </span>
           </div>
         </div>
@@ -604,7 +620,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:21.4%;background:#4ade80"></div>
             </div>
             <span class="bar-gap muted">
-              -4.3%p &nbsp; ₩1,578,975 부족
+              -4.3%p &nbsp; ₩1,575,220 부족
             </span>
           </div>
         </div>
@@ -623,7 +639,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:15.6%;background:#fbbf24"></div>
             </div>
             <span class="bar-gap muted">
-              -4.2%p &nbsp; ₩1,546,848 부족
+              -4.2%p &nbsp; ₩1,547,471 부족
             </span>
           </div>
         </div>
@@ -632,17 +648,17 @@ tr:last-child td{border-bottom:none}
           <div class="alloc-meta">
             <span class="alloc-name">한국 저PBR/금융</span>
             <span class="alloc-pcts">
-              <b>6.1%</b> <span class="muted">/ 목표 10%</span>
+              <b>6.0%</b> <span class="muted">/ 목표 10%</span>
               <span class="badge badge-ok">정상</span>
             </span>
           </div>
           <div class="bar-wrap">
             <div class="bar-bg">
               <div class="bar-tgt" style="width:20%;background:#f472b6"></div>
-              <div class="bar-cur" style="width:12.2%;background:#f472b6"></div>
+              <div class="bar-cur" style="width:12.0%;background:#f472b6"></div>
             </div>
             <span class="bar-gap muted">
-              -3.9%p &nbsp; ₩1,457,640 부족
+              -4.0%p &nbsp; ₩1,462,659 부족
             </span>
           </div>
         </div>
@@ -661,7 +677,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:8.2%;background:#a78bfa"></div>
             </div>
             <span class="bar-gap muted">
-              -0.9%p &nbsp; ₩332,020 부족
+              -0.9%p &nbsp; ₩340,530 부족
             </span>
           </div>
         </div>
@@ -680,7 +696,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:10.6%;background:#34d399"></div>
             </div>
             <span class="bar-gap muted">
-              +2.3%p &nbsp; ₩862,303 초과
+              +2.3%p &nbsp; ₩858,072 초과
             </span>
           </div>
         </div>
@@ -699,7 +715,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:6.6%;background:#fb923c"></div>
             </div>
             <span class="bar-gap blue">
-              -6.7%p &nbsp; ₩2,486,135 부족
+              -6.7%p &nbsp; ₩2,478,334 부족
             </span>
           </div>
         </div>
@@ -718,7 +734,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:48.8%;background:#94a3b8"></div>
             </div>
             <span class="bar-gap red">
-              +9.4%p &nbsp; ₩3,475,918 초과
+              +9.4%p &nbsp; ₩3,486,341 초과
             </span>
           </div>
         </div>
@@ -737,7 +753,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:19.6%;background:#38bdf8"></div>
             </div>
             <span class="bar-gap muted">
-              -0.2%p &nbsp; ₩90,590 부족
+              -0.2%p &nbsp; ₩90,109 부족
             </span>
           </div>
         </div>
@@ -756,7 +772,7 @@ tr:last-child td{border-bottom:none}
               <div class="bar-cur" style="width:12.0%;background:#f59e0b"></div>
             </div>
             <span class="bar-gap muted">
-              +1.0%p &nbsp; ₩358,900 초과
+              +1.0%p &nbsp; ₩358,773 초과
             </span>
           </div>
         </div>
@@ -766,128 +782,139 @@ tr:last-child td{border-bottom:none}
       <div class="card-title">계좌별 보유 현황</div>
       
         <div class="acc-block">
-          <div class="acc-title">연금계좌 <span class="muted">₩3,613,450</span></div>
+          <div class="acc-title">연금계좌 <span class="muted">₩3,606,950</span></div>
           <table>
             <thead><tr>
-              <th>종목</th><th class="tr">현재가</th>
+              <th>종목</th><th class="tr">평단가</th><th class="tr">현재가</th>
               <th class="tr">등락</th><th class="tr">평가금액</th>
               <th class="tr">수익률</th>
             </tr></thead><tbody>
 
               <tr>
                 <td>TIGER 미국나스닥100 <span class="muted">(5주)</span></td>
-                <td class="tr">₩163,000</td>
-                <td class="tr up">+0.39%</td>
-                <td class="tr">₩815,000</td>
-                <td class="tr"><span class="up">+47.6%</span><br><span class="muted" style="font-size:10px">+₩262,750</span></td>
+                <td class="tr muted" style="font-size:11px">₩110,450</td>
+                <td class="tr">₩162,670</td>
+                <td class="tr up">+0.18%</td>
+                <td class="tr">₩813,350</td>
+                <td class="tr"><span class="up">+47.3%</span><br><span class="muted" style="font-size:10px">+₩261,100</span></td>
               </tr>
 
               <tr>
                 <td>TIGER 미국배당다우존스 <span class="muted">(194주)</span></td>
-                <td class="tr">₩14,425</td>
-                <td class="tr down">-0.28%</td>
-                <td class="tr">₩2,798,450</td>
-                <td class="tr"><span class="up">+23.5%</span><br><span class="muted" style="font-size:10px">+₩533,130</span></td>
+                <td class="tr muted" style="font-size:11px">₩11,678</td>
+                <td class="tr">₩14,400</td>
+                <td class="tr down">-0.45%</td>
+                <td class="tr">₩2,793,600</td>
+                <td class="tr"><span class="up">+23.3%</span><br><span class="muted" style="font-size:10px">+₩528,280</span></td>
               </tr>
 </tbody></table></div>
 
         <div class="acc-block">
-          <div class="acc-title">ISA계좌 <span class="muted">₩13,975,570</span></div>
+          <div class="acc-title">ISA계좌 <span class="muted">₩13,929,355</span></div>
           <table>
             <thead><tr>
-              <th>종목</th><th class="tr">현재가</th>
+              <th>종목</th><th class="tr">평단가</th><th class="tr">현재가</th>
               <th class="tr">등락</th><th class="tr">평가금액</th>
               <th class="tr">수익률</th>
             </tr></thead><tbody>
 
               <tr>
                 <td>KODEX 200 <span class="muted">(23주)</span></td>
-                <td class="tr">₩85,805</td>
-                <td class="tr up">+3.50%</td>
-                <td class="tr">₩1,973,515</td>
-                <td class="tr"><span class="up">+51.3%</span><br><span class="muted" style="font-size:10px">+₩668,725</span></td>
+                <td class="tr muted" style="font-size:11px">₩56,730</td>
+                <td class="tr">₩85,530</td>
+                <td class="tr up">+3.17%</td>
+                <td class="tr">₩1,967,190</td>
+                <td class="tr"><span class="up">+50.8%</span><br><span class="muted" style="font-size:10px">+₩662,400</span></td>
               </tr>
 
               <tr>
                 <td>TIGER 미국나스닥100 <span class="muted">(12주)</span></td>
-                <td class="tr">₩163,000</td>
-                <td class="tr up">+0.39%</td>
-                <td class="tr">₩1,956,000</td>
-                <td class="tr"><span class="up">+28.1%</span><br><span class="muted" style="font-size:10px">+₩429,377</span></td>
+                <td class="tr muted" style="font-size:11px">₩127,219</td>
+                <td class="tr">₩162,670</td>
+                <td class="tr up">+0.18%</td>
+                <td class="tr">₩1,952,040</td>
+                <td class="tr"><span class="up">+27.9%</span><br><span class="muted" style="font-size:10px">+₩425,417</span></td>
               </tr>
 
               <tr>
                 <td>TIGER 미국배당다우존스 <span class="muted">(150주)</span></td>
-                <td class="tr">₩14,425</td>
-                <td class="tr down">-0.28%</td>
-                <td class="tr">₩2,163,750</td>
-                <td class="tr"><span class="up">+21.4%</span><br><span class="muted" style="font-size:10px">+₩381,285</span></td>
+                <td class="tr muted" style="font-size:11px">₩11,883</td>
+                <td class="tr">₩14,400</td>
+                <td class="tr down">-0.45%</td>
+                <td class="tr">₩2,160,000</td>
+                <td class="tr"><span class="up">+21.2%</span><br><span class="muted" style="font-size:10px">+₩377,535</span></td>
               </tr>
 
               <tr>
                 <td>신한지주 <span class="muted">(24주)</span></td>
-                <td class="tr">₩93,600</td>
-                <td class="tr up">+4.93%</td>
-                <td class="tr">₩2,246,400</td>
-                <td class="tr"><span class="down">-5.8%</span><br><span class="muted" style="font-size:10px">₩-137,100</span></td>
+                <td class="tr muted" style="font-size:11px">₩99,313</td>
+                <td class="tr">₩93,100</td>
+                <td class="tr up">+4.37%</td>
+                <td class="tr">₩2,234,400</td>
+                <td class="tr"><span class="down">-6.3%</span><br><span class="muted" style="font-size:10px">₩-149,100</span></td>
               </tr>
 
               <tr>
                 <td>HD현대일렉트릭 <span class="muted">(3주)</span></td>
-                <td class="tr">₩966,000</td>
-                <td class="tr up">+2.66%</td>
-                <td class="tr">₩2,898,000</td>
-                <td class="tr"><span class="down">-1.1%</span><br><span class="muted" style="font-size:10px">₩-33,000</span></td>
+                <td class="tr muted" style="font-size:11px">₩977,000</td>
+                <td class="tr">₩963,000</td>
+                <td class="tr up">+2.34%</td>
+                <td class="tr">₩2,889,000</td>
+                <td class="tr"><span class="down">-1.4%</span><br><span class="muted" style="font-size:10px">₩-42,000</span></td>
               </tr>
 
               <tr>
                 <td>LIG넥스원 <span class="muted">(2주)</span></td>
-                <td class="tr">₩760,000</td>
-                <td class="tr up">+0.13%</td>
-                <td class="tr">₩1,520,000</td>
-                <td class="tr"><span class="up">+64.7%</span><br><span class="muted" style="font-size:10px">+₩597,000</span></td>
+                <td class="tr muted" style="font-size:11px">₩461,500</td>
+                <td class="tr">₩754,000</td>
+                <td class="tr down">-0.66%</td>
+                <td class="tr">₩1,508,000</td>
+                <td class="tr"><span class="up">+63.4%</span><br><span class="muted" style="font-size:10px">+₩585,000</span></td>
               </tr>
 
               <tr>
                 <td>KODEX 골드선물(H) <span class="muted">(41주)</span></td>
-                <td class="tr">₩29,705</td>
-                <td class="tr up">+0.44%</td>
-                <td class="tr">₩1,217,905</td>
-                <td class="tr"><span class="up">+1.3%</span><br><span class="muted" style="font-size:10px">+₩16,085</span></td>
+                <td class="tr muted" style="font-size:11px">₩29,312</td>
+                <td class="tr">₩29,725</td>
+                <td class="tr up">+0.51%</td>
+                <td class="tr">₩1,218,725</td>
+                <td class="tr"><span class="up">+1.4%</span><br><span class="muted" style="font-size:10px">+₩16,905</span></td>
               </tr>
 </tbody></table></div>
 
         <div class="acc-block">
-          <div class="acc-title">해외주식계좌 <span class="muted">₩8,208,483</span></div>
+          <div class="acc-title">해외주식계좌 <span class="muted">₩8,195,054</span></div>
           <table>
             <thead><tr>
-              <th>종목</th><th class="tr">현재가</th>
+              <th>종목</th><th class="tr">평단가</th><th class="tr">현재가</th>
               <th class="tr">등락</th><th class="tr">평가금액</th>
               <th class="tr">수익률</th>
             </tr></thead><tbody>
 
               <tr>
                 <td>SCHD <span class="muted">(40주)</span></td>
+                <td class="tr muted" style="font-size:11px"><span class="muted">—</span></td>
                 <td class="tr">$30.90</td>
                 <td class="tr down">-0.39%</td>
-                <td class="tr">₩1,813,336</td>
-                <td class="tr"><span class="up">+18.0%</span><br><span class="muted" style="font-size:10px">+₩276,134</span></td>
+                <td class="tr">₩1,810,369</td>
+                <td class="tr"><span class="up">+17.8%</span><br><span class="muted" style="font-size:10px">+₩273,167</span></td>
               </tr>
 
               <tr>
                 <td>VOO <span class="muted">(7주)</span></td>
+                <td class="tr muted" style="font-size:11px"><span class="muted">—</span></td>
                 <td class="tr">$622.72</td>
                 <td class="tr down">-0.17%</td>
-                <td class="tr">₩6,395,147</td>
-                <td class="tr"><span class="up">+50.5%</span><br><span class="muted" style="font-size:10px">+₩2,145,035</span></td>
+                <td class="tr">₩6,384,685</td>
+                <td class="tr"><span class="up">+50.2%</span><br><span class="muted" style="font-size:10px">+₩2,134,573</span></td>
               </tr>
 </tbody></table></div>
 
     <div class="cash-summary">
-      <div class="cash-row"><span class="muted">현금 (증권+예금)</span><span>₩9,031,978</span></div>
+      <div class="cash-row"><span class="muted">현금 (증권+예금)</span><span>₩9,031,930</span></div>
       <div class="cash-row">
         <span class="muted">크립토 (바이낸스) <span style="font-size:10px">· config.json (수동)</span></span>
-        <span>₩2,210,920</span>
+        <span>₩2,207,303</span>
       </div>
     </div>
       <div class="data-source">주식: Yahoo Finance &nbsp;|&nbsp; 크립토: config.json (수동, API 미연결)</div>
@@ -1071,56 +1098,56 @@ tr:last-child td{border-bottom:none}
   <div class="grid2">
     <div class="card">
       <div class="card-title">배당 수익 예측 (연간)</div>
-      <div class="div-total green">연간 예측 배당: ₩505,425 &nbsp;<span class="muted" style="font-size:12px">/ 월 ≈ ₩42,119</span></div>
+      <div class="div-total green">연간 예측 배당: ₩503,973 &nbsp;<span class="muted" style="font-size:12px">/ 월 ≈ ₩41,998</span></div>
 
     <div class="div-row">
       <span>신한지주 <span class="muted">(4.8%)</span></span>
-      <span class="green">₩107,827/년</span>
+      <span class="green">₩107,251/년</span>
     </div>
 
     <div class="div-row">
       <span>TIGER 미국배당다우존스 <span class="muted">(3.0%)</span></span>
-      <span class="green">₩83,954/년</span>
+      <span class="green">₩83,808/년</span>
     </div>
 
     <div class="div-row">
       <span>VOO <span class="muted">(1.3%)</span></span>
-      <span class="green">₩83,137/년</span>
+      <span class="green">₩83,001/년</span>
     </div>
 
     <div class="div-row">
       <span>TIGER 미국배당다우존스 <span class="muted">(3.0%)</span></span>
-      <span class="green">₩64,912/년</span>
+      <span class="green">₩64,800/년</span>
     </div>
 
     <div class="div-row">
       <span>SCHD <span class="muted">(3.5%)</span></span>
-      <span class="green">₩63,467/년</span>
+      <span class="green">₩63,363/년</span>
     </div>
 
     <div class="div-row">
       <span>HD현대일렉트릭 <span class="muted">(1.5%)</span></span>
-      <span class="green">₩43,470/년</span>
+      <span class="green">₩43,335/년</span>
     </div>
 
     <div class="div-row">
       <span>KODEX 200 <span class="muted">(1.5%)</span></span>
-      <span class="green">₩29,603/년</span>
+      <span class="green">₩29,508/년</span>
     </div>
 
     <div class="div-row">
       <span>LIG넥스원 <span class="muted">(1.0%)</span></span>
-      <span class="green">₩15,200/년</span>
+      <span class="green">₩15,080/년</span>
     </div>
 
     <div class="div-row">
       <span>TIGER 미국나스닥100 <span class="muted">(0.5%)</span></span>
-      <span class="green">₩9,780/년</span>
+      <span class="green">₩9,760/년</span>
     </div>
 
     <div class="div-row">
       <span>TIGER 미국나스닥100 <span class="muted">(0.5%)</span></span>
-      <span class="green">₩4,075/년</span>
+      <span class="green">₩4,067/년</span>
     </div>
     </div>
     <div class="card">
@@ -1131,8 +1158,8 @@ tr:last-child td{border-bottom:none}
               <div><span class="wl-name">HD현대일렉트릭</span>
                 <span class="wl-note muted">변압기/전력기기, 미주 수출</span></div>
               <div class="wl-right">
-                <span>₩966,000</span>
-                <span class="up" style="margin-left:8px">+2.66%</span>
+                <span>₩963,000</span>
+                <span class="up" style="margin-left:8px">+2.34%</span>
               </div>
             </div>
 
@@ -1178,8 +1205,8 @@ tr:last-child td{border-bottom:none}
               <div><span class="wl-name">신한지주</span>
                 <span class="wl-note muted">ROE 개선, 배당 확대</span></div>
               <div class="wl-right">
-                <span>₩93,600</span>
-                <span class="up" style="margin-left:8px">+4.93%</span>
+                <span>₩93,100</span>
+                <span class="up" style="margin-left:8px">+4.37%</span>
               </div>
             </div>
 
@@ -1263,8 +1290,8 @@ tr:last-child td{border-bottom:none}
               <div><span class="wl-name">금 선물</span>
                 <span class="wl-note muted">달러헷지, 중앙은행 매입</span></div>
               <div class="wl-right">
-                <span>$5,211.80</span>
-                <span class="down" style="margin-left:8px">-0.34%</span>
+                <span>$5,210.30</span>
+                <span class="down" style="margin-left:8px">-0.37%</span>
               </div>
             </div>
 
@@ -1272,8 +1299,8 @@ tr:last-child td{border-bottom:none}
               <div><span class="wl-name">구리 선물</span>
                 <span class="wl-note muted">AI인프라·전기화 수요</span></div>
               <div class="wl-right">
-                <span>$5.94</span>
-                <span class="up" style="margin-left:8px">+0.55%</span>
+                <span>$5.93</span>
+                <span class="up" style="margin-left:8px">+0.40%</span>
               </div>
             </div>
 
@@ -1286,7 +1313,7 @@ tr:last-child td{border-bottom:none}
               </div>
             </div>
 </div>
-      <div class="data-source">출처: Yahoo Finance &nbsp;|&nbsp; 조회: 2026-03-11 04:16</div>
+      <div class="data-source">출처: Yahoo Finance &nbsp;|&nbsp; 조회: 2026-03-11 05:32</div>
     </div>
   </div>
 
@@ -1305,9 +1332,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-done">완료</span>
               </div>
               <div class="buy-right">
-                <span>₩93,600</span>
-                <span class="up" style="margin-left:6px">+4.93%</span>
-                <span class="muted" style="margin-left:8px">₩1,404,000</span>
+                <span>₩93,100</span>
+                <span class="up" style="margin-left:6px">+4.37%</span>
+                <span class="muted" style="margin-left:8px">₩1,396,500</span>
               </div>
             </div>
 <div class="buy-note muted">매수완료 평단 ₩100,700</div>
@@ -1319,9 +1346,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-done">완료</span>
               </div>
               <div class="buy-right">
-                <span>₩29,705</span>
-                <span class="up" style="margin-left:6px">+0.44%</span>
-                <span class="muted" style="margin-left:8px">₩772,330</span>
+                <span>₩29,725</span>
+                <span class="up" style="margin-left:6px">+0.51%</span>
+                <span class="muted" style="margin-left:8px">₩772,850</span>
               </div>
             </div>
 <div class="buy-note muted">매수완료 평단 ₩28,570</div>
@@ -1333,9 +1360,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-done">완료</span>
               </div>
               <div class="buy-right">
-                <span>₩966,000</span>
-                <span class="up" style="margin-left:6px">+2.66%</span>
-                <span class="muted" style="margin-left:8px">₩966,000</span>
+                <span>₩963,000</span>
+                <span class="up" style="margin-left:6px">+2.34%</span>
+                <span class="muted" style="margin-left:8px">₩963,000</span>
               </div>
             </div>
 <div class="buy-note muted">매수완료 평단 ₩967,000</div>
@@ -1347,9 +1374,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-done">완료</span>
               </div>
               <div class="buy-right">
-                <span>₩760,000</span>
-                <span class="up" style="margin-left:6px">+0.13%</span>
-                <span class="muted" style="margin-left:8px">₩1,520,000</span>
+                <span>₩754,000</span>
+                <span class="down" style="margin-left:6px">-0.66%</span>
+                <span class="muted" style="margin-left:8px">₩1,508,000</span>
               </div>
             </div>
 <div class="buy-note muted">매수완료 평단 ₩461,500</div>
@@ -1366,9 +1393,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-done">완료</span>
               </div>
               <div class="buy-right">
-                <span>₩93,600</span>
-                <span class="up" style="margin-left:6px">+4.93%</span>
-                <span class="muted" style="margin-left:8px">₩842,400</span>
+                <span>₩93,100</span>
+                <span class="up" style="margin-left:6px">+4.37%</span>
+                <span class="muted" style="margin-left:8px">₩837,900</span>
               </div>
             </div>
 <div class="buy-note muted">매수완료 9주 @ ₩97,000</div>
@@ -1380,9 +1407,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-done">완료</span>
               </div>
               <div class="buy-right">
-                <span>₩29,705</span>
-                <span class="up" style="margin-left:6px">+0.44%</span>
-                <span class="muted" style="margin-left:8px">₩445,575</span>
+                <span>₩29,725</span>
+                <span class="up" style="margin-left:6px">+0.51%</span>
+                <span class="muted" style="margin-left:8px">₩445,875</span>
               </div>
             </div>
 <div class="buy-note muted">매수완료 15주 @ ₩30,600</div>
@@ -1394,9 +1421,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-done">완료</span>
               </div>
               <div class="buy-right">
-                <span>₩966,000</span>
-                <span class="up" style="margin-left:6px">+2.66%</span>
-                <span class="muted" style="margin-left:8px">₩966,000</span>
+                <span>₩963,000</span>
+                <span class="up" style="margin-left:6px">+2.34%</span>
+                <span class="muted" style="margin-left:8px">₩963,000</span>
               </div>
             </div>
 <div class="buy-note muted">매수완료 1주 @ ₩1,041,000</div>
@@ -1408,9 +1435,9 @@ tr:last-child td{border-bottom:none}
                 
               </div>
               <div class="buy-right">
-                <span>₩760,000</span>
-                <span class="up" style="margin-left:6px">+0.13%</span>
-                <span class="muted" style="margin-left:8px">₩1,520,000</span>
+                <span>₩754,000</span>
+                <span class="down" style="margin-left:6px">-0.66%</span>
+                <span class="muted" style="margin-left:8px">₩1,508,000</span>
               </div>
             </div>
 <div class="buy-note muted">상한가 급등으로 보류, Phase 3 재검토</div>
@@ -1427,9 +1454,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-waiting">조건대기</span>
               </div>
               <div class="buy-right">
-                <span>₩93,600</span>
-                <span class="up" style="margin-left:6px">+4.93%</span>
-                <span class="muted" style="margin-left:8px">₩561,600</span>
+                <span>₩93,100</span>
+                <span class="up" style="margin-left:6px">+4.37%</span>
+                <span class="muted" style="margin-left:8px">₩558,600</span>
               </div>
             </div>
 
@@ -1440,9 +1467,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-waiting">조건대기</span>
               </div>
               <div class="buy-right">
-                <span>₩29,705</span>
-                <span class="up" style="margin-left:6px">+0.44%</span>
-                <span class="muted" style="margin-left:8px">₩326,755</span>
+                <span>₩29,725</span>
+                <span class="up" style="margin-left:6px">+0.51%</span>
+                <span class="muted" style="margin-left:8px">₩326,975</span>
               </div>
             </div>
 
@@ -1453,9 +1480,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-waiting">조건대기</span>
               </div>
               <div class="buy-right">
-                <span>₩966,000</span>
-                <span class="up" style="margin-left:6px">+2.66%</span>
-                <span class="muted" style="margin-left:8px">₩966,000</span>
+                <span>₩963,000</span>
+                <span class="up" style="margin-left:6px">+2.34%</span>
+                <span class="muted" style="margin-left:8px">₩963,000</span>
               </div>
             </div>
 
@@ -1466,9 +1493,9 @@ tr:last-child td{border-bottom:none}
                 <span class="buy-status-waiting">조건대기</span>
               </div>
               <div class="buy-right">
-                <span>₩760,000</span>
-                <span class="up" style="margin-left:6px">+0.13%</span>
-                <span class="muted" style="margin-left:8px">₩760,000</span>
+                <span>₩754,000</span>
+                <span class="down" style="margin-left:6px">-0.66%</span>
+                <span class="muted" style="margin-left:8px">₩754,000</span>
               </div>
             </div>
 </div>
