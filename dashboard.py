@@ -591,6 +591,18 @@ def build_news() -> str:
     parts = []
     parts.append('<div class="news-section">')
     parts.append(f'  <h2>📰 시황 속보 <span class="news-timestamp">({timestamp})</span></h2>')
+
+    # AI 포트폴리오 코멘트
+    ai = news_data.get("ai_commentary")
+    if ai and ai.get("summary"):
+        signals = ai.get("portfolio_signals", [])
+        signals_html = "".join(f'<span class="ai-signal">{s}</span>' for s in signals)
+        parts.append(f"""  <div class="ai-commentary">
+    <div class="ai-label">🤖 AI 포트폴리오 분석</div>
+    <div class="ai-summary">{ai['summary']}</div>
+    {f'<div class="ai-signals">{signals_html}</div>' if signals else ''}
+  </div>""")
+
     parts.append('  <div class="news-grid">')
 
     for headline in headlines[:5]:  # 최대 5개
@@ -721,7 +733,7 @@ def build_accounts(portfolio: dict) -> str:
           <div class="acc-title">{acc['name']} <span class="muted">{total_str}</span></div>
           <table>
             <thead><tr>
-              <th>종목</th><th class="tr">현재가</th>
+              <th>종목</th><th class="tr">평단가</th><th class="tr">현재가</th>
               <th class="tr">등락</th><th class="tr">평가금액</th>
               <th class="tr">수익률</th>
             </tr></thead><tbody>""")
@@ -748,9 +760,16 @@ def build_accounts(portfolio: dict) -> str:
             else:
                 pnl_str = "—"
 
+            avg_p = h.get("avg_price", 0) or 0
+            if avg_p > 0:
+                avg_disp = f"₩{avg_p:,.0f}" if h["ticker"].endswith(".KS") else f"${avg_p:,.2f}"
+            else:
+                avg_disp = '<span class="muted">—</span>'
+
             parts.append(f"""
               <tr>
                 <td>{h['name']} <span class="muted">({h['shares']}주)</span></td>
+                <td class="tr muted" style="font-size:11px">{avg_disp}</td>
                 <td class="tr">{price_display}</td>
                 <td class="tr {cls}">{chg_str}</td>
                 <td class="tr">{val_str}</td>
@@ -838,6 +857,112 @@ def build_rebalancing(portfolio: dict, config: dict) -> str:
         parts.append(f'<div class="rebal-rule muted">• {rule}</div>')
     parts.append("</div>")
     return "\n".join(parts)
+
+
+def build_performance_chart(config: dict) -> str:
+    """포트폴리오 수익률 차트 (Chart.js, 스냅샷 기반)"""
+    import glob as _glob
+
+    data_dir = Path(__file__).parent / "data"
+    snapshots = sorted(_glob.glob(str(data_dir / "20*.json")))
+
+    if len(snapshots) < 2:
+        return ""
+
+    # 스냅샷에서 날짜·총자산 추출
+    labels, values = [], []
+    first_val = None
+    for fp in snapshots:
+        try:
+            with open(fp, encoding="utf-8") as f:
+                s = json.load(f)
+            d = s.get("date", "")
+            v = s.get("total_krw", 0)
+            if d and v:
+                labels.append(d)
+                if first_val is None:
+                    first_val = v
+                values.append(round((v / first_val - 1) * 100, 2))
+        except Exception:
+            continue
+
+    if not labels:
+        return ""
+
+    # 매수 이벤트 주석 (config buy_plan에서 추출)
+    buy_events = {}
+    for phase_id, phase in config.get("portfolio", {}).get("buy_plan", {}).items():
+        for item in phase.get("items", []):
+            if item.get("status") == "done" and item.get("note"):
+                note = item["note"]
+                # 날짜는 없으므로 phase label만 표시
+                label_key = phase.get("label", phase_id)
+                buy_events[label_key] = True
+
+    labels_js  = str(labels)
+    values_js  = str(values)
+    start_date = labels[0] if labels else ""
+    end_val    = values[-1] if values else 0
+    end_sign   = "+" if end_val >= 0 else ""
+    end_cls    = "green" if end_val >= 0 else "red"
+
+    return f"""
+<div class="section">
+  <h2>📈 포트폴리오 수익률 <span class="muted" style="font-size:13px">({start_date} 이후)</span>
+    <span class="{end_cls}" style="font-size:14px; margin-left:8px">{end_sign}{end_val:.2f}%</span>
+  </h2>
+  <div style="position:relative; height:220px; max-width:900px; margin:0 auto;">
+    <canvas id="perfChart"></canvas>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <script>
+  (function() {{
+    const labels = {labels_js};
+    const values = {values_js};
+    const ctx = document.getElementById('perfChart').getContext('2d');
+    new Chart(ctx, {{
+      type: 'line',
+      data: {{
+        labels: labels,
+        datasets: [{{
+          label: '포트폴리오 수익률 (%)',
+          data: values,
+          borderColor: '#60a5fa',
+          backgroundColor: 'rgba(96,165,250,0.08)',
+          borderWidth: 2,
+          pointRadius: 4,
+          pointBackgroundColor: values.map(v => v >= 0 ? '#4ade80' : '#f87171'),
+          tension: 0.3,
+          fill: true,
+        }}]
+      }},
+      options: {{
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {{
+          legend: {{ display: false }},
+          tooltip: {{
+            callbacks: {{
+              label: ctx => (ctx.parsed.y >= 0 ? '+' : '') + ctx.parsed.y.toFixed(2) + '%'
+            }}
+          }}
+        }},
+        scales: {{
+          x: {{ grid: {{ color: '#2d2d2d' }}, ticks: {{ color: '#9ca3af', maxTicksLimit: 8 }} }},
+          y: {{
+            grid: {{ color: '#2d2d2d' }},
+            ticks: {{ color: '#9ca3af', callback: v => (v >= 0 ? '+' : '') + v + '%' }},
+            afterDataLimits: axis => {{
+              const pad = Math.max(Math.abs(axis.max), Math.abs(axis.min)) * 0.15 || 1;
+              axis.max += pad; axis.min -= pad;
+            }}
+          }}
+        }}
+      }}
+    }});
+  }})();
+  </script>
+</div>"""
 
 
 def build_summary(portfolio: dict) -> str:
@@ -1373,6 +1498,15 @@ tr:last-child td{border-bottom:none}
 .data-source{font-size:10px;color:var(--muted);margin-top:12px;padding-top:8px;
              border-top:1px solid var(--border);text-align:right;letter-spacing:.2px}
 
+/* AI 코멘터리 */
+.ai-commentary{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);
+               border-radius:8px;padding:12px 14px;margin-bottom:14px}
+.ai-label{font-size:10px;font-weight:700;color:var(--blue);margin-bottom:6px;letter-spacing:.5px}
+.ai-summary{font-size:12px;line-height:1.6}
+.ai-signals{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ai-signal{background:rgba(96,165,250,.15);color:var(--blue);border-radius:12px;
+           padding:2px 9px;font-size:11px;font-weight:600}
+
 /* 수익성 요약 */
 .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
 .summary-item{background:var(--bg);border-radius:8px;padding:10px 14px}
@@ -1565,6 +1699,13 @@ def generate_html(config: dict, price_data: dict, portfolio: dict, strategy_sign
 
   <!-- 뉴스 속보 -->
   {build_news()}
+
+  <!-- 수익률 차트 -->
+  <div class="full">
+    <div class="card">
+      {build_performance_chart(config)}
+    </div>
+  </div>
 
   <!-- 수익성 요약 -->
   <div class="full">
