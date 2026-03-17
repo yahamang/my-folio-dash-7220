@@ -9,7 +9,8 @@
 import json
 import sys
 import warnings
-from datetime import datetime, date
+import calendar as _calendar
+from datetime import datetime, date, timedelta
 from pathlib import Path
 
 warnings.filterwarnings("ignore")
@@ -321,6 +322,66 @@ def calculate_portfolio(config: dict, price_data: dict) -> dict:
     }
 
 
+def calculate_risk_metrics(data_dir: Path) -> dict:
+    """스냅샷 시계열로 MDD, 연 변동성, Sharpe 계산"""
+    import glob as _glob
+    import math
+
+    snapshots = sorted(_glob.glob(str(data_dir / "20*.json")))
+    values = []
+    for fp in snapshots:
+        try:
+            with open(fp, encoding="utf-8") as f:
+                s = json.load(f)
+            v = s.get("total_krw", 0)
+            if v:
+                values.append(v)
+        except Exception:
+            continue
+
+    result = {"mdd": None, "annual_volatility": None, "sharpe": None}
+    if len(values) < 5:
+        return result
+
+    # MDD는 5개 이상이면 계산, Sharpe는 최소 30개 (총자산 기반이라 단기는 의미 없음)
+
+    # MDD
+    peak = values[0]
+    max_dd = 0.0
+    for v in values:
+        if v > peak:
+            peak = v
+        dd = (peak - v) / peak * 100
+        if dd > max_dd:
+            max_dd = dd
+    result["mdd"] = round(max_dd, 1)
+
+    # 변동성/Sharpe — 총자산 기반이므로 30개 이상일 때만 신뢰 (단기는 입금으로 왜곡)
+    if len(values) < 30:
+        return result
+
+    # 일간 수익률
+    daily_rets = [(values[i] / values[i-1] - 1) for i in range(1, len(values))]
+    n = len(daily_rets)
+    mean_r = sum(daily_rets) / n
+    variance = sum((r - mean_r) ** 2 for r in daily_rets) / n
+    daily_std = math.sqrt(variance)
+
+    # 연 환산 (거래일 252일 기준)
+    ann_vol = daily_std * math.sqrt(252) * 100
+    result["annual_volatility"] = round(ann_vol, 1)
+
+    # Sharpe (무위험수익률 3%)
+    if len(values) >= 30:
+        ann_ret = (values[-1] / values[0]) ** (252 / n) - 1
+        rf = 0.03
+        if ann_vol > 0:
+            sharpe = (ann_ret - rf) / (ann_vol / 100)
+            result["sharpe"] = round(sharpe, 2)
+
+    return result
+
+
 def calculate_strategy_signals(config: dict, price_data: dict, portfolio: dict) -> dict:
     """
     전략 신호 계산: 매수/매도/대기 판단을 위한 지표 생성
@@ -592,14 +653,70 @@ def build_news() -> str:
     parts.append('<div class="news-section">')
     parts.append(f'  <h2>📰 시황 속보 <span class="news-timestamp">({timestamp})</span></h2>')
 
-    # AI 포트폴리오 코멘트
+    # AI 에이전트 의견 섹션
     ai = news_data.get("ai_commentary")
-    if ai and ai.get("summary"):
-        signals = ai.get("portfolio_signals", [])
-        signals_html = "".join(f'<span class="ai-signal">{s}</span>' for s in signals)
-        parts.append(f"""  <div class="ai-commentary">
-    <div class="ai-label">🤖 AI 포트폴리오 분석</div>
-    <div class="ai-summary">{ai['summary']}</div>
+    if ai:
+        mood_map = {
+            "fear": ("😱 공포", "#f87171"),
+            "caution": ("⚠️ 주의", "#fbbf24"),
+            "neutral": ("😐 중립", "#94a3b8"),
+            "optimism": ("😊 낙관", "#4ade80"),
+            "greed": ("🤑 탐욕", "#22c55e")
+        }
+        agent_icons = {
+            "portfolio_tracker":  "💼",
+            "technical_analyst":  "📊",
+            "market_analyst":     "📈",
+            "sector_researcher":  "🔬",
+            "narrative_analyst":  "🌐",
+        }
+
+        # 에이전트별 카드 그리드
+        agents = ai.get("agents", {})
+        # 구버전 단일 코멘터리 호환: agents 없으면 synthesis만 표시
+        if agents:
+            cards_html = []
+            display_order = ["portfolio_tracker", "technical_analyst", "market_analyst", "sector_researcher", "narrative_analyst"]
+            ordered_keys = [k for k in display_order if k in agents] + [k for k in agents if k not in display_order]
+            for key in ordered_keys:
+                agent = agents.get(key)
+                if not agent:
+                    continue
+                icon = agent_icons.get(key, "🤖")
+                label = agent.get("label", key)
+                opinion = agent.get("opinion", "")
+                signals = agent.get("signals", [])
+                sigs_html = "".join(f'<span class="ai-signal">{s}</span>' for s in signals[:2])
+                updated = agent.get("updated_at", "")[:10]
+                cards_html.append(f"""    <div class="agent-card">
+      <div class="agent-card-header">
+        <span class="agent-icon">{icon}</span>
+        <span class="agent-label">{label}</span>
+        <span class="agent-updated">{updated}</span>
+      </div>
+      <div class="agent-opinion">{opinion}</div>
+      {f'<div class="ai-signals agent-signals">{sigs_html}</div>' if sigs_html else ''}
+    </div>""")
+
+            if cards_html:
+                parts.append(f'  <div class="agent-grid">{"".join(cards_html)}\n  </div>')
+
+        # 종합 의견 (synthesis 또는 구버전 summary)
+        synthesis = ai.get("synthesis") or (ai if ai.get("summary") else None)
+        if synthesis and synthesis.get("summary"):
+            mood_label, mood_color = mood_map.get(synthesis.get("sentiment", "neutral"), ("😐 중립", "#94a3b8"))
+            health = synthesis.get("portfolio_health", 0)
+            signals = synthesis.get("portfolio_signals", [])
+            signals_html = "".join(f'<span class="ai-signal">{s}</span>' for s in signals)
+            parts.append(f"""  <div class="ai-commentary">
+    <div class="ai-header">
+      <div class="ai-label">⚡ 종합 의견</div>
+      <div class="ai-meta">
+        <span class="ai-mood" style="background:{mood_color}22; color:{mood_color}">{mood_label}</span>
+        {f'<span class="ai-health">건전성 {health}%</span>' if health else ''}
+      </div>
+    </div>
+    <div class="ai-summary">{synthesis['summary']}</div>
     {f'<div class="ai-signals">{signals_html}</div>' if signals else ''}
   </div>""")
 
@@ -793,16 +910,117 @@ def build_accounts(portfolio: dict) -> str:
     return "\n".join(parts)
 
 
+def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:
+    """주어진 월의 n번째 weekday(0=월, 4=금, 3=목) 반환"""
+    first = date(year, month, 1)
+    offset = (weekday - first.weekday()) % 7
+    return first + timedelta(days=offset + (n - 1) * 7)
+
+
+def get_expiry_events(months_ahead: int = 4) -> list:
+    """선물·옵션 만기일을 계산해 이벤트 리스트로 반환 (API 불필요)"""
+    today = date.today()
+    events = []
+    seen_months = set()
+
+    for delta_days in range(0, months_ahead * 32):
+        d = today + timedelta(days=delta_days)
+        ym = (d.year, d.month)
+        if ym in seen_months:
+            continue
+        seen_months.add(ym)
+        y, m = d.year, d.month
+
+        # 미국 분기 선물 만기: 3/6/9/12월 세 번째 금요일 (weekday=4)
+        if m in (3, 6, 9, 12):
+            us_expiry = _nth_weekday(y, m, 4, 3)
+            if us_expiry >= today:
+                events.append({
+                    "date": us_expiry.isoformat(),
+                    "title": "미국 분기 선물·옵션 만기 (쿼드러플 위칭)",
+                    "description": "S&P500·NASDAQ·개별주 선물/옵션 동시 만기. 변동성·거래량 급증 구간.",
+                    "type": "expiry",
+                    "priority": "high",
+                })
+        else:
+            # 미국 월간 옵션 만기: 매월 세 번째 금요일
+            us_monthly = _nth_weekday(y, m, 4, 3)
+            if us_monthly >= today:
+                events.append({
+                    "date": us_monthly.isoformat(),
+                    "title": "미국 월간 옵션 만기",
+                    "description": "개별주·ETF 옵션 만기. 단기 핀닝(pinning) 효과 주의.",
+                    "type": "expiry",
+                    "priority": "medium",
+                })
+
+        # 한국 쿼드러플 위칭: 3/6/9/12월 두 번째 목요일 (weekday=3)
+        if m in (3, 6, 9, 12):
+            kr_expiry = _nth_weekday(y, m, 3, 2)
+            if kr_expiry >= today:
+                events.append({
+                    "date": kr_expiry.isoformat(),
+                    "title": "한국 쿼드러플 위칭 (선물·옵션 동시만기)",
+                    "description": "KOSPI200 선물·옵션, 코스닥150 선물·옵션 동시만기. 프로그램 매매 급증.",
+                    "type": "expiry",
+                    "priority": "high",
+                })
+
+    return events
+
+
+def _load_economic_calendar() -> list:
+    """data/economic_calendar.json에서 경제지표 이벤트 로드"""
+    cal_path = Path(__file__).parent / "data" / "economic_calendar.json"
+    if not cal_path.exists():
+        return []
+    try:
+        data = json.loads(cal_path.read_text())
+        raw = data.get("events", [])
+        today = date.today()
+        result = []
+        for ev in raw:
+            ev_date = date.fromisoformat(ev["date"])
+            if ev_date < today:
+                continue
+            impact = ev.get("impact", "medium")
+            prev = ev.get("previous", "")
+            fore = ev.get("forecast", "")
+            detail = " | ".join(x for x in [
+                f"예상 {fore}" if fore else "",
+                f"이전 {prev}" if prev else ""
+            ] if x)
+            result.append({
+                "date": ev["date"],
+                "title": ev["title"],
+                "description": detail or ev.get("description", ""),
+                "type": "economic",
+                "priority": "high" if impact == "high" else "medium",
+                "_impact": impact,
+            })
+        return result
+    except Exception:
+        return []
+
+
 def build_events(config: dict) -> str:
     today  = date.today()
-    events = sorted(config["events"], key=lambda e: e["date"])
+    all_events = list(config["events"]) + get_expiry_events() + _load_economic_calendar()
+    events = sorted(all_events, key=lambda e: e["date"])
     parts  = []
     for ev in events:
         ev_date   = date.fromisoformat(ev["date"])
         if ev_date < today:
             continue
         days = (ev_date - today).days
-        type_color = {"portfolio": "#4ade80", "macro": "#60a5fa", "policy": "#fbbf24"}.get(ev["type"], "#94a3b8")
+        type_color = {
+            "portfolio":   "#4ade80",
+            "macro":       "#60a5fa",
+            "policy":      "#fbbf24",
+            "expiry":      "#fb923c",
+            "geopolitical":"#a78bfa",
+            "economic":    "#f87171" if ev.get("_impact") == "high" else "#fbbf24",
+        }.get(ev["type"], "#94a3b8")
         urgency    = "ev-urgent" if days <= 30 else ("ev-soon" if days <= 60 else "")
         days_str   = f"D-{days}"
         parts.append(f"""
@@ -889,6 +1107,24 @@ def build_performance_chart(config: dict) -> str:
     if not labels:
         return ""
 
+    # 벤치마크 (KOSPI, S&P 500) 같은 기간 수익률
+    kospi_vals, sp_vals = [], []
+    try:
+        import yfinance as _yf
+        start_d = labels[0]
+        end_d   = labels[-1]
+        for ticker, out in [("^KS11", kospi_vals), ("^GSPC", sp_vals)]:
+            df = _yf.download(ticker, start=start_d, end=end_d, progress=False, auto_adjust=True)
+            if not df.empty:
+                closes = df["Close"].dropna()
+                base = float(closes.iloc[0])
+                # 스냅샷 날짜에 맞춰 수익률 계산
+                ret_map = {str(d.date()): round((float(v) / base - 1) * 100, 2)
+                           for d, v in zip(closes.index, closes.values)}
+                out.extend(ret_map.get(lbl, None) for lbl in labels)
+    except Exception:
+        pass
+
     # 매수 이벤트 주석 (config buy_plan에서 추출)
     buy_events = {}
     for phase_id, phase in config.get("portfolio", {}).get("buy_plan", {}).items():
@@ -906,12 +1142,61 @@ def build_performance_chart(config: dict) -> str:
     end_sign   = "+" if end_val >= 0 else ""
     end_cls    = "green" if end_val >= 0 else "red"
 
+    # 입금 이벤트 감지: 전일 대비 +5% 이상 급등 = 신규 입금으로 간주
+    deposit_flags = [False] * len(values)
+    raw_values = []
+    for fp in snapshots:
+        try:
+            with open(fp, encoding="utf-8") as f:
+                raw_values.append(json.load(f).get("total_krw", 0))
+        except Exception:
+            raw_values.append(0)
+    for i in range(1, len(raw_values)):
+        if raw_values[i-1] > 0 and (raw_values[i] / raw_values[i-1] - 1) >= 0.05:
+            deposit_flags[i] = True
+
+    point_radii  = [8 if d else 4 for d in deposit_flags]
+    point_colors = ["#fbbf24" if d else ("'#4ade80'" if v >= 0 else "'#f87171'")
+                    for d, v in zip(deposit_flags, values)]
+    point_radii_js  = str(point_radii)
+    point_colors_js = "[" + ",".join(
+        f"'#fbbf24'" if d else (f"'#4ade80'" if v >= 0 else f"'#f87171'")
+        for d, v in zip(deposit_flags, values)
+    ) + "]"
+
+    # 벤치마크 데이터셋 JS (spanGaps: true로 null 구간 연결)
+    def _bench_dataset(label, color, vals):
+        js_vals = "[" + ",".join("null" if v is None else str(v) for v in vals) + "]"
+        return f"""{{
+          label: '{label}',
+          data: {js_vals},
+          borderColor: '{color}',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          borderDash: [4, 3],
+          pointRadius: 0,
+          tension: 0.3,
+          fill: false,
+          spanGaps: true,
+        }}"""
+
+    extra_datasets = ""
+    if kospi_vals:
+        extra_datasets += "," + _bench_dataset("KOSPI", "#fb923c", kospi_vals)
+    if sp_vals:
+        extra_datasets += "," + _bench_dataset("S&P 500", "#a78bfa", sp_vals)
+
+    has_bench   = bool(kospi_vals or sp_vals)
+    deposit_any = any(deposit_flags)
+    tooltip_note = " (💰=입금)" if deposit_any else ""
+
     return f"""
 <div class="section">
-  <h2>📈 포트폴리오 수익률 <span class="muted" style="font-size:13px">({start_date} 이후)</span>
+  <h2>📈 총자산 변화
+    <span class="muted" style="font-size:12px; margin-left:6px">({start_date} 이후, 신규 입금 포함)</span>
     <span class="{end_cls}" style="font-size:14px; margin-left:8px">{end_sign}{end_val:.2f}%</span>
   </h2>
-  <div style="position:relative; height:220px; max-width:900px; margin:0 auto;">
+  <div style="position:relative; height:260px; max-width:900px; margin:0 auto;">
     <canvas id="perfChart"></canvas>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
@@ -925,25 +1210,32 @@ def build_performance_chart(config: dict) -> str:
       data: {{
         labels: labels,
         datasets: [{{
-          label: '포트폴리오 수익률 (%)',
+          label: '내 포트폴리오{tooltip_note}',
           data: values,
           borderColor: '#60a5fa',
           backgroundColor: 'rgba(96,165,250,0.08)',
           borderWidth: 2,
-          pointRadius: 4,
-          pointBackgroundColor: values.map(v => v >= 0 ? '#4ade80' : '#f87171'),
+          pointRadius: {point_radii_js},
+          pointBackgroundColor: {point_colors_js},
           tension: 0.3,
           fill: true,
-        }}]
+        }}{extra_datasets}]
       }},
       options: {{
         responsive: true,
         maintainAspectRatio: false,
         plugins: {{
-          legend: {{ display: false }},
+          legend: {{
+            display: {str(has_bench or deposit_any).lower()},
+            position: 'bottom',
+            labels: {{ color: '#94a3b8', font: {{ size: 11 }}, boxWidth: 20 }}
+          }},
           tooltip: {{
             callbacks: {{
-              label: ctx => (ctx.parsed.y >= 0 ? '+' : '') + ctx.parsed.y.toFixed(2) + '%'
+              label: ctx => {{
+                const s = ctx.dataset.label + ': ' + (ctx.parsed.y >= 0 ? '+' : '') + ctx.parsed.y.toFixed(2) + '%';
+                return s;
+              }}
             }}
           }}
         }},
@@ -1082,6 +1374,22 @@ def build_risk(portfolio: dict, price_data: dict) -> str:
         conc_cls  = "risk-ok"
         conc_note = "분산 양호"
 
+    # MDD / Sharpe / 변동성
+    mdd     = portfolio.get("mdd")
+    sharpe  = portfolio.get("sharpe")
+    ann_vol = portfolio.get("annual_volatility")
+
+    mdd_str   = f"{mdd:.1f}%" if mdd is not None else "데이터 부족"
+    mdd_cls   = "risk-danger" if mdd and mdd > 20 else ("risk-warn" if mdd and mdd > 10 else "risk-ok")
+    mdd_note  = "고위험 낙폭" if mdd and mdd > 20 else ("주의 구간" if mdd and mdd > 10 else "양호")
+
+    sharpe_str  = f"{sharpe:.2f}" if sharpe is not None else "데이터 부족"
+    sharpe_cls  = "risk-ok" if sharpe and sharpe >= 1 else ("risk-warn" if sharpe and sharpe >= 0 else "risk-danger")
+    sharpe_note = "우수" if sharpe and sharpe >= 1 else ("보통" if sharpe and sharpe >= 0 else "손실 구간")
+
+    vol_str  = f"{ann_vol:.1f}%" if ann_vol is not None else "데이터 부족"
+    vol_cls  = "risk-danger" if ann_vol and ann_vol > 30 else ("risk-warn" if ann_vol and ann_vol > 15 else "risk-ok")
+
     return f"""
     <div class="risk-grid">
       <div class="risk-item">
@@ -1103,6 +1411,21 @@ def build_risk(portfolio: dict, price_data: dict) -> str:
         <div class="risk-label">최대 자산군 비중</div>
         <div class="risk-value {conc_cls}">{top_pct:.1f}%</div>
         <div class="risk-sub">{top_label}</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">최대 낙폭 (MDD)</div>
+        <div class="risk-value {mdd_cls}">{mdd_str}</div>
+        <div class="risk-sub">{mdd_note}</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">Sharpe Ratio</div>
+        <div class="risk-value {sharpe_cls}">{sharpe_str}</div>
+        <div class="risk-sub">{sharpe_note}</div>
+      </div>
+      <div class="risk-item">
+        <div class="risk-label">연 변동성</div>
+        <div class="risk-value {vol_cls}">{vol_str}</div>
+        <div class="risk-sub">스냅샷 기반 추정</div>
       </div>
     </div>"""
 
@@ -1143,6 +1466,28 @@ def build_watchlist(config: dict, price_data: dict) -> str:
             info = prices.get(t, {})
             raw  = info.get("price")
             chg  = info.get("change_pct", 0)
+            alert_price = item.get("alert_price")
+            alert_dir   = item.get("alert_direction")
+            alert_triggered = False
+            alert_badge = ""
+            if raw and alert_price and alert_dir:
+                if alert_dir == "below" and raw <= alert_price:
+                    alert_triggered = True
+                    is_kr2 = t.endswith(".KS") or t.endswith(".KQ")
+                    ap_str = f"₩{alert_price:,.0f}" if is_kr2 else f"${alert_price:,.2f}"
+                    alert_badge = f'<span class="alert-badge">🔔 매수 알림 ({ap_str} 이하)</span>'
+                elif alert_dir == "above" and raw >= alert_price:
+                    alert_triggered = True
+                    is_kr2 = t.endswith(".KS") or t.endswith(".KQ")
+                    ap_str = f"₩{alert_price:,.0f}" if is_kr2 else f"${alert_price:,.2f}"
+                    alert_badge = f'<span class="alert-badge alert-above">🔔 매도 검토 ({ap_str} 이상)</span>'
+            elif alert_price and alert_dir:
+                # 가격 미조회시 알림 목표가만 표시
+                is_kr2 = t.endswith(".KS") or t.endswith(".KQ")
+                ap_str = f"₩{alert_price:,.0f}" if is_kr2 else f"${alert_price:,.2f}"
+                dir_label = "↓" if alert_dir == "below" else "↑"
+                alert_badge = f'<span class="alert-target muted">{dir_label}{ap_str}</span>'
+
             if raw:
                 is_kr = t.endswith(".KS") or t.endswith(".KQ")
                 val_str = f"₩{raw:,.0f}" if is_kr else f"${raw:,.2f}"
@@ -1150,10 +1495,12 @@ def build_watchlist(config: dict, price_data: dict) -> str:
                 cls = _chg_cls(chg)
             else:
                 val_str, chg_str, cls = "—", "—", "neutral"
+            row_cls = " wl-alert" if alert_triggered else ""
             parts.append(f"""
-            <div class="wl-row">
+            <div class="wl-row{row_cls}">
               <div><span class="wl-name">{item['name']}</span>
-                <span class="wl-note muted">{item.get('note','')}</span></div>
+                <span class="wl-note muted">{item.get('note','')}</span>
+                {alert_badge}</div>
               <div class="wl-right">
                 <span>{val_str}</span>
                 <span class="{cls}" style="margin-left:8px">{chg_str}</span>
@@ -1487,6 +1834,11 @@ tr:last-child td{border-bottom:none}
 /* 관심종목 */
 .wl-group{margin-bottom:18px}
 .wl-label{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px}
+.wl-alert{background:rgba(251,191,36,.06);border-radius:6px;padding:4px 6px;margin:-4px -6px}
+.alert-badge{font-size:10px;font-weight:700;color:#fbbf24;background:rgba(251,191,36,.15);
+             padding:2px 7px;border-radius:6px;margin-left:6px;white-space:nowrap}
+.alert-above{color:#f87171;background:rgba(248,113,113,.15)}
+.alert-target{font-size:10px;margin-left:6px}
 .wl-row{display:flex;justify-content:space-between;align-items:center;
         padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}
 .wl-row:last-child{border-bottom:none}
@@ -1498,14 +1850,29 @@ tr:last-child td{border-bottom:none}
 .data-source{font-size:10px;color:var(--muted);margin-top:12px;padding-top:8px;
              border-top:1px solid var(--border);text-align:right;letter-spacing:.2px}
 
-/* AI 코멘터리 */
+/* AI 에이전트 카드 그리드 */
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:16px}
+.agent-card{background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.18);
+            border-radius:10px;padding:14px}
+.agent-card-header{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.agent-icon{font-size:14px}
+.agent-label{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.3px;flex:1}
+.agent-updated{font-size:10px;color:var(--muted)}
+.agent-opinion{font-size:12px;line-height:1.6;color:var(--text)}
+.agent-signals{margin-top:8px}
+
+/* AI 코멘터리 (종합 의견) */
 .ai-commentary{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);
-               border-radius:8px;padding:12px 14px;margin-bottom:14px}
-.ai-label{font-size:10px;font-weight:700;color:var(--blue);margin-bottom:6px;letter-spacing:.5px}
-.ai-summary{font-size:12px;line-height:1.6}
-.ai-signals{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.ai-signal{background:rgba(96,165,250,.15);color:var(--blue);border-radius:12px;
-           padding:2px 9px;font-size:11px;font-weight:600}
+               border-radius:12px;padding:16px;margin-bottom:20px}
+.ai-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.ai-label{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.5px}
+.ai-meta{display:flex;gap:8px;align-items:center}
+.ai-mood{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px}
+.ai-health{font-size:10px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.05);padding:2px 8px;border-radius:6px}
+.ai-summary{font-size:13px;line-height:1.7;color:var(--text)}
+.ai-signals{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ai-signal{background:rgba(96,165,250,.12);color:var(--blue);border-radius:8px;
+           padding:4px 10px;font-size:11px;font-weight:600;border:1px solid rgba(96,165,250,.1)}
 
 /* 수익성 요약 */
 .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
@@ -1519,7 +1886,7 @@ tr:last-child td{border-bottom:none}
 .acc-pnl-row:last-child{border-bottom:none}
 
 /* 리스크 지표 */
-.risk-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:4px}
+.risk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:4px}
 .risk-item{background:var(--bg);border-radius:8px;padding:10px 14px}
 .risk-label{font-size:11px;color:var(--muted);margin-bottom:3px}
 .risk-value{font-size:16px;font-weight:700}
@@ -1858,6 +2225,7 @@ def generate_dashboard_html(skip_binance=False) -> str:
         price_data["binance"] = None
 
     portfolio = calculate_portfolio(config, price_data)
+    portfolio.update(calculate_risk_metrics(DATA_DIR))
     strategy_signals = calculate_strategy_signals(config, price_data, portfolio)
     html = generate_html(config, price_data, portfolio, strategy_signals)
 
@@ -1916,6 +2284,7 @@ def main():
 
     print("🔢 포트폴리오 계산 중...")
     portfolio = calculate_portfolio(config, price_data)
+    portfolio.update(calculate_risk_metrics(DATA_DIR))
 
     print("🧠 전략 신호 분석 중...")
     strategy_signals = calculate_strategy_signals(config, price_data, portfolio)
